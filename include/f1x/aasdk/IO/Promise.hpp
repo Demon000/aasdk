@@ -20,6 +20,7 @@
 
 #include <functional>
 #include <boost/asio.hpp>
+#include <boost/core/noncopyable.hpp>
 #include <f1x/aasdk/Error/Error.hpp>
 #include <f1x/aasdk/IO/IOContextWrapper.hpp>
 
