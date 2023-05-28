@@ -33,13 +33,17 @@ SSLWrapper::SSLWrapper()
 {
     SSL_library_init();
     SSL_load_error_strings();
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     ERR_load_BIO_strings();
+#endif
     OpenSSL_add_all_algorithms();
 }
 
 SSLWrapper::~SSLWrapper()
 {
+#if OPENSSL_VERSION_NUMBER < 0x30000000L
     FIPS_mode_set(0);
+#endif
     ENGINE_cleanup();
     CONF_modules_unload(1);
     EVP_cleanup();
