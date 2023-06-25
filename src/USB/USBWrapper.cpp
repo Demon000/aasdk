@@ -18,6 +18,10 @@
 
 #include <aasdk/USB/USBWrapper.hpp>
 
+#include <boost/log/trivial.hpp>
+
+#define OPENAUTO_LOG(severity) BOOST_LOG_TRIVIAL(severity) << "[OpenAuto] "
+
 
 namespace aasdk
 {
@@ -104,6 +108,8 @@ ssize_t USBWrapper::getDeviceList(DeviceListHandle& handle)
     libusb_device** raw_handle;
     auto result = libusb_get_device_list(usbContext_, &raw_handle);
 
+    OPENAUTO_LOG(error) << "libusb_get_device_list: " << result;
+
     if(result >= 0)
     {
         handle = DeviceListHandle(new DeviceList(raw_handle, raw_handle + result),
@@ -120,6 +126,7 @@ ssize_t USBWrapper::getDeviceList(DeviceListHandle& handle)
     }
     else
     {
+        OPENAUTO_LOG(error) << "libusb_get_device_list: " << result;
         handle = DeviceListHandle();
     }
 

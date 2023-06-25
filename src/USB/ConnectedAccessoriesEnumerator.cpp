@@ -17,7 +17,9 @@
 */
 
 #include <aasdk/USB/ConnectedAccessoriesEnumerator.hpp>
+#include <boost/log/trivial.hpp>
 
+#define OPENAUTO_LOG(severity) BOOST_LOG_TRIVIAL(severity) << "[OpenAuto] "
 
 namespace aasdk
 {
@@ -37,6 +39,7 @@ void ConnectedAccessoriesEnumerator::enumerate(Promise::Pointer promise)
     strand_.dispatch([this, self = this->shared_from_this(), promise = std::move(promise)]() mutable {
         if(promise_ != nullptr)
         {
+            OPENAUTO_LOG(error) << "rejecting because operation in progress";
             promise->reject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS));
         }
         else
@@ -45,16 +48,20 @@ void ConnectedAccessoriesEnumerator::enumerate(Promise::Pointer promise)
 
             auto result = usbWrapper_.getDeviceList(deviceListHandle_);
 
+            OPENAUTO_LOG(error) << "usbWrapper_.getDeviceList result: " << result;
+
             if(result < 0)
             {
                 promise_->reject(error::Error(error::ErrorCode::USB_LIST_DEVICES));
             }
             else if(deviceListHandle_->empty())
             {
+                OPENAUTO_LOG(error) << "deviceListHandle_->empty";
                 promise_->resolve(false);
             }
             else
             {
+                OPENAUTO_LOG(error) << "do queryNextDevice";
                 actualDeviceIter_ = deviceListHandle_->begin();
                 this->queryNextDevice();
             }
@@ -82,6 +89,7 @@ void ConnectedAccessoriesEnumerator::queryNextDevice()
         auto queryChainPromise = IAccessoryModeQueryChain::Promise::defer(strand_);
 
         queryChainPromise->then([this, self = this->shared_from_this()](DeviceHandle) mutable {
+                OPENAUTO_LOG(error) << "promise resolve true";
                 promise_->resolve(true);
                 this->reset();
             },
@@ -92,6 +100,7 @@ void ConnectedAccessoriesEnumerator::queryNextDevice()
                 }
                 else
                 {
+                    OPENAUTO_LOG(error) << "promise reject";
                     promise_->reject(e);
                     this->reset();
                 }
@@ -101,6 +110,7 @@ void ConnectedAccessoriesEnumerator::queryNextDevice()
     }
     else if(actualDeviceIter_ == deviceListHandle_->end())
     {
+        OPENAUTO_LOG(error) << "promise resolve false end";
         promise_->resolve(false);
         this->reset();
     }
