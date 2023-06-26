@@ -20,39 +20,41 @@
 
 #include <aasdk_proto/AVChannelSetupRequestMessage.pb.h>
 #include <aasdk_proto/AVChannelStartIndicationMessage.pb.h>
+#include <aasdk_proto/AVChannelStopIndicationMessage.pb.h>
 #include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
 #include <aasdk_proto/VideoFocusRequestMessage.pb.h>
-#include <aasdk_proto/AVChannelStopIndicationMessage.pb.h>
-#include <aasdk/Messenger/Timestamp.hpp>
 #include <aasdk/Common/Data.hpp>
 #include <aasdk/Error/Error.hpp>
+#include <aasdk/Messenger/Timestamp.hpp>
 
+namespace aasdk {
+namespace channel {
+namespace av {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace av
-{
+class IVideoServiceChannelEventHandler {
+ public:
+  typedef std::shared_ptr<IVideoServiceChannelEventHandler> Pointer;
 
-class IVideoServiceChannelEventHandler
-{
-public:
-    typedef std::shared_ptr<IVideoServiceChannelEventHandler> Pointer;
+  IVideoServiceChannelEventHandler() = default;
+  virtual ~IVideoServiceChannelEventHandler() = default;
 
-    IVideoServiceChannelEventHandler() = default;
-    virtual ~IVideoServiceChannelEventHandler() = default;
-
-    virtual void onChannelOpenRequest(const proto::messages::ChannelOpenRequest& request) = 0;
-    virtual void onAVChannelSetupRequest(const proto::messages::AVChannelSetupRequest& request) = 0;
-    virtual void onAVChannelStartIndication(const proto::messages::AVChannelStartIndication& indication) = 0;
-    virtual void onAVChannelStopIndication(const proto::messages::AVChannelStopIndication& indication) = 0;
-    virtual void onAVMediaWithTimestampIndication(messenger::Timestamp::ValueType, const common::DataConstBuffer& buffer) = 0;
-    virtual void onAVMediaIndication(const common::DataConstBuffer& buffer) = 0;
-    virtual void onVideoFocusRequest(const proto::messages::VideoFocusRequest& request) = 0;
-    virtual void onChannelError(const error::Error& e) = 0;
+  virtual void onChannelOpenRequest(
+      const proto::messages::ChannelOpenRequest& request) = 0;
+  virtual void onAVChannelSetupRequest(
+      const proto::messages::AVChannelSetupRequest& request) = 0;
+  virtual void onAVChannelStartIndication(
+      const proto::messages::AVChannelStartIndication& indication) = 0;
+  virtual void onAVChannelStopIndication(
+      const proto::messages::AVChannelStopIndication& indication) = 0;
+  virtual void onAVMediaWithTimestampIndication(
+      messenger::Timestamp::ValueType,
+      const common::DataConstBuffer& buffer) = 0;
+  virtual void onAVMediaIndication(const common::DataConstBuffer& buffer) = 0;
+  virtual void onVideoFocusRequest(
+      const proto::messages::VideoFocusRequest& request) = 0;
+  virtual void onChannelError(const error::Error& e) = 0;
 };
 
-}
-}
-}
+}  // namespace av
+}  // namespace channel
+}  // namespace aasdk

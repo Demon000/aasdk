@@ -18,30 +18,26 @@
 
 #pragma once
 
-#include <memory>
-#include <functional>
-#include <aasdk/USB/IUSBWrapper.hpp>
 #include <aasdk/Error/Error.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <aasdk/USB/IUSBWrapper.hpp>
+#include <functional>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IUSBHub {
+ public:
+  typedef std::shared_ptr<IUSBHub> Pointer;
+  typedef io::Promise<DeviceHandle> Promise;
 
-class IUSBHub
-{
-public:
-    typedef std::shared_ptr<IUSBHub> Pointer;
-    typedef io::Promise<DeviceHandle> Promise;
+  IUSBHub() = default;
+  virtual ~IUSBHub() = default;
 
-    IUSBHub() = default;
-    virtual ~IUSBHub() = default;
-
-    virtual void start(Promise::Pointer promise) = 0;
-    virtual void cancel() = 0;
+  virtual void start(Promise::Pointer promise) = 0;
+  virtual void cancel() = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

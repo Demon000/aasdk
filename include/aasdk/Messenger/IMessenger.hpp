@@ -18,30 +18,28 @@
 
 #pragma once
 
-#include <memory>
-#include <functional>
 #include <aasdk/Messenger/ICryptor.hpp>
 #include <aasdk/Messenger/Message.hpp>
 #include <aasdk/Messenger/Promise.hpp>
+#include <functional>
+#include <memory>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+class IMessenger {
+ public:
+  IMessenger() = default;
+  virtual ~IMessenger() = default;
 
-class IMessenger
-{
-public:
-    IMessenger() = default;
-    virtual ~IMessenger() = default;
+  typedef std::shared_ptr<IMessenger> Pointer;
 
-    typedef std::shared_ptr<IMessenger> Pointer;
-
-    virtual void enqueueReceive(ChannelId channelId, ReceivePromise::Pointer promise) = 0;
-    virtual void enqueueSend(Message::Pointer message, SendPromise::Pointer promise) = 0;
-    virtual void stop() = 0;
+  virtual void enqueueReceive(ChannelId channelId,
+                              ReceivePromise::Pointer promise) = 0;
+  virtual void enqueueSend(Message::Pointer message,
+                           SendPromise::Pointer promise) = 0;
+  virtual void stop() = 0;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

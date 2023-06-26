@@ -19,23 +19,16 @@
 #include <aasdk/USB/AccessoryModeQuery.hpp>
 #include <aasdk/USB/USBEndpoint.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+AccessoryModeQuery::AccessoryModeQuery(boost::asio::io_service& ioService,
+                                       IUSBEndpoint::Pointer usbEndpoint)
+    : strand_(ioService), usbEndpoint_(std::move(usbEndpoint)) {}
 
-AccessoryModeQuery::AccessoryModeQuery(boost::asio::io_service& ioService, IUSBEndpoint::Pointer usbEndpoint)
-    : strand_(ioService)
-    , usbEndpoint_(std::move(usbEndpoint))
-{
-
+void AccessoryModeQuery::cancel() {
+  usbEndpoint_->cancelTransfers();
 }
 
-void AccessoryModeQuery::cancel()
-{
-    usbEndpoint_->cancelTransfers();
-}
-
-}
-}
+}  // namespace usb
+}  // namespace aasdk

@@ -18,28 +18,24 @@
 
 #pragma once
 
-#include <memory>
-#include <functional>
-#include <aasdk/USB/IUSBWrapper.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <aasdk/USB/IUSBWrapper.hpp>
+#include <functional>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IAccessoryModeQueryChain {
+ public:
+  typedef std::shared_ptr<IAccessoryModeQueryChain> Pointer;
+  typedef io::Promise<DeviceHandle> Promise;
 
-class IAccessoryModeQueryChain
-{
-public:
-    typedef std::shared_ptr<IAccessoryModeQueryChain> Pointer;
-    typedef io::Promise<DeviceHandle> Promise;
-
-    IAccessoryModeQueryChain() = default;
-    virtual ~IAccessoryModeQueryChain() = default;
-    virtual void start(DeviceHandle handle, Promise::Pointer promise) = 0;
-    virtual void cancel() = 0;
+  IAccessoryModeQueryChain() = default;
+  virtual ~IAccessoryModeQueryChain() = default;
+  virtual void start(DeviceHandle handle, Promise::Pointer promise) = 0;
+  virtual void cancel() = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

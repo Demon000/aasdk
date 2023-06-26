@@ -21,26 +21,23 @@
 #include <aasdk/TCP/ITCPEndpoint.hpp>
 #include <aasdk/Transport/Transport.hpp>
 
+namespace aasdk {
+namespace transport {
 
-namespace aasdk
-{
-namespace transport
-{
+class TCPTransport : public Transport {
+ public:
+  TCPTransport(boost::asio::io_service& ioService,
+               tcp::ITCPEndpoint::Pointer tcpEndpoint);
 
-class TCPTransport: public Transport
-{
-public:
-    TCPTransport(boost::asio::io_service& ioService, tcp::ITCPEndpoint::Pointer tcpEndpoint);
+  void stop() override;
 
-    void stop() override;
+ private:
+  void enqueueReceive(common::DataBuffer buffer) override;
+  void enqueueSend(SendQueue::iterator queueElement) override;
+  void sendHandler(SendQueue::iterator queueElement, const error::Error& e);
 
-private:
-    void enqueueReceive(common::DataBuffer buffer) override;
-    void enqueueSend(SendQueue::iterator queueElement) override;
-    void sendHandler(SendQueue::iterator queueElement, const error::Error& e);
-
-    tcp::ITCPEndpoint::Pointer tcpEndpoint_;
+  tcp::ITCPEndpoint::Pointer tcpEndpoint_;
 };
 
-}
-}
+}  // namespace transport
+}  // namespace aasdk

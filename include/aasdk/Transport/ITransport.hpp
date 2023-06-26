@@ -18,30 +18,26 @@
 
 #pragma once
 
-#include <memory>
 #include <aasdk/Common/Data.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace transport {
 
-namespace aasdk
-{
-namespace transport
-{
+class ITransport {
+ public:
+  typedef std::shared_ptr<ITransport> Pointer;
+  typedef io::Promise<common::Data> ReceivePromise;
+  typedef io::Promise<void> SendPromise;
 
-class ITransport
-{
-public:
-    typedef std::shared_ptr<ITransport> Pointer;
-    typedef io::Promise<common::Data> ReceivePromise;
-    typedef io::Promise<void> SendPromise;
+  ITransport() = default;
+  virtual ~ITransport() = default;
 
-    ITransport() = default;
-    virtual ~ITransport() = default;
-
-    virtual void receive(size_t size, ReceivePromise::Pointer promise) = 0;
-    virtual void send(common::Data data, SendPromise::Pointer promise) = 0;
-    virtual void stop() = 0;
+  virtual void receive(size_t size, ReceivePromise::Pointer promise) = 0;
+  virtual void send(common::Data data, SendPromise::Pointer promise) = 0;
+  virtual void stop() = 0;
 };
 
-}
-}
+}  // namespace transport
+}  // namespace aasdk

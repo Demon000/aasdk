@@ -18,29 +18,24 @@
 
 #pragma once
 
-#include <unordered_map>
-#include <queue>
 #include <aasdk/Messenger/Message.hpp>
+#include <queue>
+#include <unordered_map>
 
+namespace aasdk {
+namespace messenger {
 
+class ChannelReceiveMessageQueue {
+ public:
+  void push(Message::Pointer message);
+  Message::Pointer pop(ChannelId channelId);
+  bool empty(ChannelId channelId) const;
+  void clear();
 
-namespace aasdk
-{
-namespace messenger
-{
-
-class ChannelReceiveMessageQueue
-{
-public:
-    void push(Message::Pointer message);
-    Message::Pointer pop(ChannelId channelId);
-    bool empty(ChannelId channelId) const;
-    void clear();
-
-private:
-    typedef std::queue<Message::Pointer> MessageQueue;
-    std::unordered_map<ChannelId, MessageQueue> queue_;
+ private:
+  typedef std::queue<Message::Pointer> MessageQueue;
+  std::unordered_map<ChannelId, MessageQueue> queue_;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

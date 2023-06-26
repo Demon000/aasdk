@@ -16,158 +16,170 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <aasdk_proto/ControlMessageIdsEnum.pb.h>
 #include <aasdk_proto/AVChannelMessageIdsEnum.pb.h>
-#include <aasdk/Messenger/Timestamp.hpp>
-#include <aasdk/Channel/AV/IAVInputServiceChannelEventHandler.hpp>
+#include <aasdk_proto/ControlMessageIdsEnum.pb.h>
 #include <aasdk/Channel/AV/AVInputServiceChannel.hpp>
+#include <aasdk/Channel/AV/IAVInputServiceChannelEventHandler.hpp>
 #include <aasdk/Common/Log.hpp>
+#include <aasdk/Messenger/Timestamp.hpp>
 
+namespace aasdk {
+namespace channel {
+namespace av {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace av
-{
+AVInputServiceChannel::AVInputServiceChannel(
+    boost::asio::io_service::strand& strand,
+    messenger::IMessenger::Pointer messenger)
+    : ServiceChannel(strand, std::move(messenger),
+                     messenger::ChannelId::AV_INPUT) {}
 
-AVInputServiceChannel::AVInputServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger)
-    : ServiceChannel(strand, std::move(messenger), messenger::ChannelId::AV_INPUT)
-{
+void AVInputServiceChannel::receive(
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  auto receivePromise = messenger::ReceivePromise::defer(strand_);
+  receivePromise->then(
+      std::bind(&AVInputServiceChannel::messageHandler,
+                this->shared_from_this(), std::placeholders::_1, eventHandler),
+      std::bind(&IAVInputServiceChannelEventHandler::onChannelError,
+                eventHandler, std::placeholders::_1));
 
+  messenger_->enqueueReceive(channelId_, std::move(receivePromise));
 }
 
-void AVInputServiceChannel::receive(IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    auto receivePromise = messenger::ReceivePromise::defer(strand_);
-    receivePromise->then(std::bind(&AVInputServiceChannel::messageHandler, this->shared_from_this(), std::placeholders::_1, eventHandler),
-                        std::bind(&IAVInputServiceChannelEventHandler::onChannelError, eventHandler, std::placeholders::_1));
+void AVInputServiceChannel::sendChannelOpenResponse(
+    const proto::messages::ChannelOpenResponse& response,
+    SendPromise::Pointer promise) {
+  auto message(std::make_shared<messenger::Message>(
+      channelId_, messenger::EncryptionType::ENCRYPTED,
+      messenger::MessageType::CONTROL));
+  message->insertPayload(
+      messenger::MessageId(proto::ids::ControlMessage::CHANNEL_OPEN_RESPONSE)
+          .getData());
+  message->insertPayload(response);
 
-    messenger_->enqueueReceive(channelId_, std::move(receivePromise));
+  this->send(std::move(message), std::move(promise));
 }
 
-void AVInputServiceChannel::sendChannelOpenResponse(const proto::messages::ChannelOpenResponse& response, SendPromise::Pointer promise)
-{
-    auto message(std::make_shared<messenger::Message>(channelId_, messenger::EncryptionType::ENCRYPTED, messenger::MessageType::CONTROL));
-    message->insertPayload(messenger::MessageId(proto::ids::ControlMessage::CHANNEL_OPEN_RESPONSE).getData());
-    message->insertPayload(response);
+void AVInputServiceChannel::sendAVChannelSetupResponse(
+    const proto::messages::AVChannelSetupResponse& response,
+    SendPromise::Pointer promise) {
+  auto message(std::make_shared<messenger::Message>(
+      channelId_, messenger::EncryptionType::ENCRYPTED,
+      messenger::MessageType::SPECIFIC));
+  message->insertPayload(
+      messenger::MessageId(proto::ids::AVChannelMessage::SETUP_RESPONSE)
+          .getData());
+  message->insertPayload(response);
 
-    this->send(std::move(message), std::move(promise));
+  this->send(std::move(message), std::move(promise));
 }
 
-void AVInputServiceChannel::sendAVChannelSetupResponse(const proto::messages::AVChannelSetupResponse& response, SendPromise::Pointer promise)
-{
-    auto message(std::make_shared<messenger::Message>(channelId_, messenger::EncryptionType::ENCRYPTED, messenger::MessageType::SPECIFIC));
-    message->insertPayload(messenger::MessageId(proto::ids::AVChannelMessage::SETUP_RESPONSE).getData());
-    message->insertPayload(response);
-
-    this->send(std::move(message), std::move(promise));
+messenger::ChannelId AVInputServiceChannel::getId() const {
+  return channelId_;
 }
 
-messenger::ChannelId AVInputServiceChannel::getId() const
-{
-    return channelId_;
-}
+void AVInputServiceChannel::messageHandler(
+    messenger::Message::Pointer message,
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  messenger::MessageId messageId(message->getPayload());
+  common::DataConstBuffer payload(message->getPayload(), messageId.getSizeOf());
 
-void AVInputServiceChannel::messageHandler(messenger::Message::Pointer message, IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    messenger::MessageId messageId(message->getPayload());
-    common::DataConstBuffer payload(message->getPayload(), messageId.getSizeOf());
-
-    switch(messageId.getId())
-    {
+  switch (messageId.getId()) {
     case proto::ids::AVChannelMessage::SETUP_REQUEST:
-        this->handleAVChannelSetupRequest(payload, std::move(eventHandler));
-        break;
+      this->handleAVChannelSetupRequest(payload, std::move(eventHandler));
+      break;
     case proto::ids::AVChannelMessage::AV_INPUT_OPEN_REQUEST:
-        this->handleAVInputOpenRequest(payload, std::move(eventHandler));
-        break;
+      this->handleAVInputOpenRequest(payload, std::move(eventHandler));
+      break;
     case proto::ids::AVChannelMessage::AV_MEDIA_ACK_INDICATION:
-        this->handleAVMediaAckIndication(payload, std::move(eventHandler));
-        break;
+      this->handleAVMediaAckIndication(payload, std::move(eventHandler));
+      break;
     case proto::ids::ControlMessage::CHANNEL_OPEN_REQUEST:
-        this->handleChannelOpenRequest(payload, std::move(eventHandler));
-        break;
+      this->handleChannelOpenRequest(payload, std::move(eventHandler));
+      break;
     default:
-        AASDK_LOG(error) << "[AVInputServiceChannel] message not handled: " << messageId.getId();
-        this->receive(std::move(eventHandler));
-        break;
-    }
+      AASDK_LOG(error) << "[AVInputServiceChannel] message not handled: "
+                       << messageId.getId();
+      this->receive(std::move(eventHandler));
+      break;
+  }
 }
 
-void AVInputServiceChannel::sendAVInputOpenResponse(const proto::messages::AVInputOpenResponse& response, SendPromise::Pointer promise)
-{
-    auto message(std::make_shared<messenger::Message>(channelId_, messenger::EncryptionType::ENCRYPTED, messenger::MessageType::SPECIFIC));
-    message->insertPayload(messenger::MessageId(proto::ids::AVChannelMessage::AV_INPUT_OPEN_RESPONSE).getData());
-    message->insertPayload(response);
+void AVInputServiceChannel::sendAVInputOpenResponse(
+    const proto::messages::AVInputOpenResponse& response,
+    SendPromise::Pointer promise) {
+  auto message(std::make_shared<messenger::Message>(
+      channelId_, messenger::EncryptionType::ENCRYPTED,
+      messenger::MessageType::SPECIFIC));
+  message->insertPayload(
+      messenger::MessageId(proto::ids::AVChannelMessage::AV_INPUT_OPEN_RESPONSE)
+          .getData());
+  message->insertPayload(response);
 
-    this->send(std::move(message), std::move(promise));
+  this->send(std::move(message), std::move(promise));
 }
 
-void AVInputServiceChannel::sendAVMediaWithTimestampIndication(messenger::Timestamp::ValueType timestamp, const common::Data& data, SendPromise::Pointer promise)
-{
-    auto message(std::make_shared<messenger::Message>(channelId_, messenger::EncryptionType::ENCRYPTED, messenger::MessageType::SPECIFIC));
-    message->insertPayload(messenger::MessageId(proto::ids::AVChannelMessage::AV_MEDIA_WITH_TIMESTAMP_INDICATION).getData());
+void AVInputServiceChannel::sendAVMediaWithTimestampIndication(
+    messenger::Timestamp::ValueType timestamp, const common::Data& data,
+    SendPromise::Pointer promise) {
+  auto message(std::make_shared<messenger::Message>(
+      channelId_, messenger::EncryptionType::ENCRYPTED,
+      messenger::MessageType::SPECIFIC));
+  message->insertPayload(
+      messenger::MessageId(
+          proto::ids::AVChannelMessage::AV_MEDIA_WITH_TIMESTAMP_INDICATION)
+          .getData());
 
-    auto timestampData = messenger::Timestamp(timestamp).getData();
-    message->insertPayload(std::move(timestampData));
-    message->insertPayload(data);
+  auto timestampData = messenger::Timestamp(timestamp).getData();
+  message->insertPayload(std::move(timestampData));
+  message->insertPayload(data);
 
-    this->send(std::move(message), std::move(promise));
-}
-
-void AVInputServiceChannel::handleAVChannelSetupRequest(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    proto::messages::AVChannelSetupRequest request;
-    if(request.ParseFromArray(payload.cdata, payload.size))
-    {
-        eventHandler->onAVChannelSetupRequest(request);
-    }
-    else
-    {
-        eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
-    }
+  this->send(std::move(message), std::move(promise));
 }
 
-void AVInputServiceChannel::handleAVInputOpenRequest(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    proto::messages::AVInputOpenRequest request;
-    if(request.ParseFromArray(payload.cdata, payload.size))
-    {
-        eventHandler->onAVInputOpenRequest(request);
-    }
-    else
-    {
-        eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
-    }
+void AVInputServiceChannel::handleAVChannelSetupRequest(
+    const common::DataConstBuffer& payload,
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  proto::messages::AVChannelSetupRequest request;
+  if (request.ParseFromArray(payload.cdata, payload.size)) {
+    eventHandler->onAVChannelSetupRequest(request);
+  } else {
+    eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
+  }
 }
 
-void AVInputServiceChannel::handleAVMediaAckIndication(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    proto::messages::AVMediaAckIndication indication;
-    if(indication.ParseFromArray(payload.cdata, payload.size))
-    {
-        eventHandler->onAVMediaAckIndication(indication);
-    }
-    else
-    {
-        eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
-    }
+void AVInputServiceChannel::handleAVInputOpenRequest(
+    const common::DataConstBuffer& payload,
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  proto::messages::AVInputOpenRequest request;
+  if (request.ParseFromArray(payload.cdata, payload.size)) {
+    eventHandler->onAVInputOpenRequest(request);
+  } else {
+    eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
+  }
 }
 
-void AVInputServiceChannel::handleChannelOpenRequest(const common::DataConstBuffer& payload, IAVInputServiceChannelEventHandler::Pointer eventHandler)
-{
-    proto::messages::ChannelOpenRequest request;
-    if(request.ParseFromArray(payload.cdata, payload.size))
-    {
-        eventHandler->onChannelOpenRequest(request);
-    }
-    else
-    {
-        eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
-    }
+void AVInputServiceChannel::handleAVMediaAckIndication(
+    const common::DataConstBuffer& payload,
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  proto::messages::AVMediaAckIndication indication;
+  if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    eventHandler->onAVMediaAckIndication(indication);
+  } else {
+    eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
+  }
 }
 
+void AVInputServiceChannel::handleChannelOpenRequest(
+    const common::DataConstBuffer& payload,
+    IAVInputServiceChannelEventHandler::Pointer eventHandler) {
+  proto::messages::ChannelOpenRequest request;
+  if (request.ParseFromArray(payload.cdata, payload.size)) {
+    eventHandler->onChannelOpenRequest(request);
+  } else {
+    eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
+  }
 }
-}
-}
+
+}  // namespace av
+}  // namespace channel
+}  // namespace aasdk

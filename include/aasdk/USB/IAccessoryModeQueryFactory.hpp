@@ -18,25 +18,22 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
 #include <aasdk/USB/AccessoryModeQueryType.hpp>
 #include <aasdk/USB/IAccessoryModeQuery.hpp>
 #include <aasdk/USB/IUSBEndpoint.hpp>
+#include <boost/asio.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IAccessoryModeQueryFactory {
+ public:
+  IAccessoryModeQueryFactory() = default;
+  virtual ~IAccessoryModeQueryFactory() = default;
 
-class IAccessoryModeQueryFactory
-{
-public:
-    IAccessoryModeQueryFactory() = default;
-    virtual ~IAccessoryModeQueryFactory() = default;
-
-    virtual IAccessoryModeQuery::Pointer createQuery(AccessoryModeQueryType queryType, IUSBEndpoint::Pointer usbEndpoint) = 0;
+  virtual IAccessoryModeQuery::Pointer createQuery(
+      AccessoryModeQueryType queryType, IUSBEndpoint::Pointer usbEndpoint) = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

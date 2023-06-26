@@ -18,49 +18,50 @@
 
 #pragma once
 
-#include <aasdk/USB/IUSBWrapper.hpp>
-#include <aasdk/USB/IAccessoryModeQueryFactory.hpp>
 #include <aasdk/USB/IAccessoryModeQueryChain.hpp>
+#include <aasdk/USB/IAccessoryModeQueryFactory.hpp>
+#include <aasdk/USB/IUSBWrapper.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
-    
 class IAccessoryModeQueryFactory;
 
-class AccessoryModeQueryChain: public IAccessoryModeQueryChain, public std::enable_shared_from_this<AccessoryModeQueryChain>, boost::noncopyable
-{
-public:
-    AccessoryModeQueryChain(IUSBWrapper& usbWrapper,
-                            boost::asio::io_service& ioService,
-                            IAccessoryModeQueryFactory& queryFactory);
+class AccessoryModeQueryChain
+    : public IAccessoryModeQueryChain,
+      public std::enable_shared_from_this<AccessoryModeQueryChain>,
+      boost::noncopyable {
+ public:
+  AccessoryModeQueryChain(IUSBWrapper& usbWrapper,
+                          boost::asio::io_service& ioService,
+                          IAccessoryModeQueryFactory& queryFactory);
 
-    void start(DeviceHandle handle, Promise::Pointer promise) override;
-    void cancel() override;
-    
-private:
-    using std::enable_shared_from_this<AccessoryModeQueryChain>::shared_from_this;
+  void start(DeviceHandle handle, Promise::Pointer promise) override;
+  void cancel() override;
 
-    void startQuery(AccessoryModeQueryType queryType, IUSBEndpoint::Pointer usbEndpoint, IAccessoryModeQuery::Promise::Pointer queryPromise);
+ private:
+  using std::enable_shared_from_this<AccessoryModeQueryChain>::shared_from_this;
 
-    void protocolVersionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void manufacturerQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void modelQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void descriptionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void versionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void uriQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void serialQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    void startQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
-    
-    IUSBWrapper& usbWrapper_;
-    boost::asio::io_service::strand strand_;
-    IAccessoryModeQueryFactory& queryFactory_;
-    DeviceHandle handle_;    
-    Promise::Pointer promise_;
-    IAccessoryModeQuery::Pointer activeQuery_;
+  void startQuery(AccessoryModeQueryType queryType,
+                  IUSBEndpoint::Pointer usbEndpoint,
+                  IAccessoryModeQuery::Promise::Pointer queryPromise);
+
+  void protocolVersionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void manufacturerQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void modelQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void descriptionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void versionQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void uriQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void serialQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+  void startQueryHandler(IUSBEndpoint::Pointer usbEndpoint);
+
+  IUSBWrapper& usbWrapper_;
+  boost::asio::io_service::strand strand_;
+  IAccessoryModeQueryFactory& queryFactory_;
+  DeviceHandle handle_;
+  Promise::Pointer promise_;
+  IAccessoryModeQuery::Pointer activeQuery_;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

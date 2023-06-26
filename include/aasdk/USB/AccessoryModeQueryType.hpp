@@ -18,26 +18,22 @@
 
 #pragma once
 
-#include <memory>
 #include <functional>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
-
-enum class AccessoryModeQueryType
-{
-    PROTOCOL_VERSION,
-    SEND_MANUFACTURER,
-    SEND_MODEL,
-    SEND_DESCRIPTION,
-    SEND_VERSION,
-    SEND_URI,
-    SEND_SERIAL,
-    START
+enum class AccessoryModeQueryType {
+  PROTOCOL_VERSION,
+  SEND_MANUFACTURER,
+  SEND_MODEL,
+  SEND_DESCRIPTION,
+  SEND_VERSION,
+  SEND_URI,
+  SEND_SERIAL,
+  START
 };
 
 }
-}
+}  // namespace aasdk

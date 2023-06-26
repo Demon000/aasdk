@@ -18,47 +18,43 @@
 
 #pragma once
 
-#include <boost/noncopyable.hpp>
-#include <memory>
 #include <google/protobuf/message.h>
 #include <aasdk/Common/Data.hpp>
 #include <aasdk/Messenger/ChannelId.hpp>
 #include <aasdk/Messenger/EncryptionType.hpp>
-#include <aasdk/Messenger/MessageType.hpp>
 #include <aasdk/Messenger/MessageId.hpp>
+#include <aasdk/Messenger/MessageType.hpp>
+#include <boost/noncopyable.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+class Message : boost::noncopyable {
+ public:
+  typedef std::shared_ptr<Message> Pointer;
 
-class Message: boost::noncopyable
-{
-public:
-    typedef std::shared_ptr<Message> Pointer;
+  Message(ChannelId channelId, EncryptionType encryptionType, MessageType type);
+  Message(Message&& other);
+  Message& operator=(Message&& other);
 
-    Message(ChannelId channelId, EncryptionType encryptionType, MessageType type);
-    Message(Message&& other);
-    Message& operator=(Message&& other);
+  ChannelId getChannelId() const;
+  EncryptionType getEncryptionType() const;
+  MessageType getType() const;
 
-    ChannelId getChannelId() const;
-    EncryptionType getEncryptionType() const;
-    MessageType getType() const;
+  common::Data& getPayload();
+  const common::Data& getPayload() const;
+  void insertPayload(const common::Data& payload);
+  void insertPayload(const google::protobuf::Message& message);
+  void insertPayload(const common::DataConstBuffer& buffer);
+  void insertPayload(common::DataBuffer& buffer);
 
-    common::Data& getPayload();
-    const common::Data& getPayload() const;
-    void insertPayload(const common::Data& payload);
-    void insertPayload(const google::protobuf::Message& message);
-    void insertPayload(const common::DataConstBuffer& buffer);
-    void insertPayload(common::DataBuffer& buffer);
-
-private:
-    ChannelId channelId_;
-    EncryptionType encryptionType_;
-    MessageType type_;
-    common::Data payload_;
+ private:
+  ChannelId channelId_;
+  EncryptionType encryptionType_;
+  MessageType type_;
+  common::Data payload_;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

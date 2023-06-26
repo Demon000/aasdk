@@ -18,17 +18,14 @@
 
 #pragma once
 
-#include <aasdk/Messenger/Message.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <aasdk/Messenger/Message.hpp>
 
-
-namespace aasdk
-{
-namespace messenger
-{
+namespace aasdk {
+namespace messenger {
 
 typedef io::Promise<Message::Pointer> ReceivePromise;
 typedef io::Promise<void> SendPromise;
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

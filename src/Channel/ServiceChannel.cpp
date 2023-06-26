@@ -16,36 +16,30 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <aasdk/IO/PromiseLink.hpp>
 #include <aasdk/Channel/ServiceChannel.hpp>
+#include <aasdk/IO/PromiseLink.hpp>
 
-
-namespace aasdk
-{
-namespace channel
-{
+namespace aasdk {
+namespace channel {
 
 ServiceChannel::ServiceChannel(boost::asio::io_service::strand& strand,
                                messenger::IMessenger::Pointer messenger,
                                messenger::ChannelId channelId)
-    : strand_(strand)
-    , messenger_(std::move(messenger))
-    , channelId_(channelId)
-{
+    : strand_(strand),
+      messenger_(std::move(messenger)),
+      channelId_(channelId) {}
 
-}
-
-void ServiceChannel::send(messenger::Message::Pointer message, SendPromise::Pointer promise)
-{
+void ServiceChannel::send(messenger::Message::Pointer message,
+                          SendPromise::Pointer promise) {
 #if BOOST_VERSION < 106600
-    auto sendPromise = messenger::SendPromise::defer(strand_.get_io_service());
+  auto sendPromise = messenger::SendPromise::defer(strand_.get_io_service());
 #else
-    auto sendPromise = messenger::SendPromise::defer(strand_.context());
+  auto sendPromise = messenger::SendPromise::defer(strand_.context());
 #endif
 
-    io::PromiseLink<>::forward(*sendPromise, std::move(promise));
-    messenger_->enqueueSend(std::move(message), std::move(sendPromise));
+  io::PromiseLink<>::forward(*sendPromise, std::move(promise));
+  messenger_->enqueueSend(std::move(message), std::move(sendPromise));
 }
 
-}
-}
+}  // namespace channel
+}  // namespace aasdk

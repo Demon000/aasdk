@@ -20,36 +20,33 @@
 
 #include <aasdk/Common/Data.hpp>
 #include <aasdk/Messenger/ChannelId.hpp>
-#include <aasdk/Messenger/FrameType.hpp>
 #include <aasdk/Messenger/EncryptionType.hpp>
+#include <aasdk/Messenger/FrameType.hpp>
 #include <aasdk/Messenger/MessageType.hpp>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+class FrameHeader {
+ public:
+  FrameHeader(const common::DataConstBuffer& buffer);
+  FrameHeader(ChannelId channelId, FrameType frameType,
+              EncryptionType encryptionType, MessageType messageType);
 
-class FrameHeader
-{
-public:
-    FrameHeader(const common::DataConstBuffer& buffer);
-    FrameHeader(ChannelId channelId, FrameType frameType, EncryptionType encryptionType, MessageType messageType);
+  ChannelId getChannelId() const;
+  FrameType getType() const;
+  EncryptionType getEncryptionType() const;
+  MessageType getMessageType() const;
+  common::Data getData() const;
 
-    ChannelId getChannelId() const;
-    FrameType getType() const;
-    EncryptionType getEncryptionType() const;
-    MessageType getMessageType() const;
-    common::Data getData() const;
+  static constexpr size_t getSizeOf() { return 2; }
 
-    static constexpr size_t getSizeOf() { return 2; }
-
-private:
-    ChannelId channelId_;
-    FrameType frameType_;
-    EncryptionType encryptionType_;
-    MessageType messageType_;
+ private:
+  ChannelId channelId_;
+  FrameType frameType_;
+  EncryptionType encryptionType_;
+  MessageType messageType_;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

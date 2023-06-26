@@ -20,33 +20,32 @@
 
 #include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
 #include <aasdk_proto/NavigationDistanceEventMessage.pb.h>
-#include <aasdk_proto/NavigationTurnEventMessage.pb.h>
 #include <aasdk_proto/NavigationStatusMessage.pb.h>
+#include <aasdk_proto/NavigationTurnEventMessage.pb.h>
 #include <aasdk/Error/Error.hpp>
 
+namespace aasdk {
+namespace channel {
+namespace navigation {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace navigation
-{
+class INavigationStatusServiceChannelEventHandler {
+ public:
+  typedef std::shared_ptr<INavigationStatusServiceChannelEventHandler> Pointer;
 
-class INavigationStatusServiceChannelEventHandler
-{
-public:
-    typedef std::shared_ptr<INavigationStatusServiceChannelEventHandler> Pointer;
+  INavigationStatusServiceChannelEventHandler() = default;
+  virtual ~INavigationStatusServiceChannelEventHandler() = default;
 
-    INavigationStatusServiceChannelEventHandler() = default;
-    virtual ~INavigationStatusServiceChannelEventHandler() = default;
-
-    virtual void onChannelOpenRequest(const proto::messages::ChannelOpenRequest& request) = 0;
-    virtual void onChannelError(const error::Error& e) = 0;
-    virtual void onStatusUpdate(const proto::messages::NavigationStatus& navStatus) = 0;
-    virtual void onTurnEvent(const proto::messages::NavigationTurnEvent& turnEvent) = 0;
-    virtual void onDistanceEvent(const proto::messages::NavigationDistanceEvent& distanceEvent) = 0;
+  virtual void onChannelOpenRequest(
+      const proto::messages::ChannelOpenRequest& request) = 0;
+  virtual void onChannelError(const error::Error& e) = 0;
+  virtual void onStatusUpdate(
+      const proto::messages::NavigationStatus& navStatus) = 0;
+  virtual void onTurnEvent(
+      const proto::messages::NavigationTurnEvent& turnEvent) = 0;
+  virtual void onDistanceEvent(
+      const proto::messages::NavigationDistanceEvent& distanceEvent) = 0;
 };
 
-}
-}
-}
+}  // namespace navigation
+}  // namespace channel
+}  // namespace aasdk

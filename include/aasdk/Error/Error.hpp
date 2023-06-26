@@ -18,36 +18,32 @@
 
 #pragma once
 
+#include <aasdk/Error/ErrorCode.hpp>
 #include <stdexcept>
 #include <string>
-#include <aasdk/Error/ErrorCode.hpp>
 
+namespace aasdk {
+namespace error {
 
-namespace aasdk
-{
-namespace error
-{
+class Error : public std::exception {
+ public:
+  Error();
+  Error(ErrorCode code, uint32_t nativeCode = 0);
 
-class Error: public std::exception
-{
-public:
-    Error();
-    Error(ErrorCode code, uint32_t nativeCode = 0);
+  ErrorCode getCode() const;
+  uint32_t getNativeCode() const;
+  const char* what() const noexcept override;
 
-    ErrorCode getCode() const;
-    uint32_t getNativeCode() const;
-    const char* what() const noexcept override;
+  bool operator!() const;
+  bool operator==(const Error& other) const;
+  bool operator==(const ErrorCode& code) const;
+  bool operator!=(const ErrorCode& code) const;
 
-    bool operator!() const;
-    bool operator==(const Error& other) const;
-    bool operator==(const ErrorCode& code) const;
-    bool operator!=(const ErrorCode& code) const;
-
-private:
-    ErrorCode code_;
-    uint32_t nativeCode_;
-    std::string message_;
+ private:
+  ErrorCode code_;
+  uint32_t nativeCode_;
+  std::string message_;
 };
 
-}
-}
+}  // namespace error
+}  // namespace aasdk

@@ -18,33 +18,31 @@
 
 #pragma once
 
-#include <memory>
 #include <aasdk_proto/ChannelOpenResponseMessage.pb.h>
-#include <aasdk/Messenger/ChannelId.hpp>
-#include <aasdk/Channel/Promise.hpp>
 #include <aasdk/Channel/Navigation/INavigationStatusServiceChannelEventHandler.hpp>
+#include <aasdk/Channel/Promise.hpp>
+#include <aasdk/Messenger/ChannelId.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace channel {
+namespace navigation {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace navigation
-{
+class INavigationStatusServiceChannel {
+ public:
+  typedef std::shared_ptr<INavigationStatusServiceChannel> Pointer;
 
-class INavigationStatusServiceChannel
-{
-public:
-    typedef std::shared_ptr<INavigationStatusServiceChannel> Pointer;
+  INavigationStatusServiceChannel() = default;
+  virtual ~INavigationStatusServiceChannel() = default;
 
-    INavigationStatusServiceChannel() = default;
-    virtual ~INavigationStatusServiceChannel() = default;
-
-    virtual void receive(INavigationStatusServiceChannelEventHandler::Pointer eventHandler) = 0;
-    virtual void sendChannelOpenResponse(const proto::messages::ChannelOpenResponse& response, SendPromise::Pointer promise) = 0;
-    virtual messenger::ChannelId getId() const = 0;
+  virtual void receive(
+      INavigationStatusServiceChannelEventHandler::Pointer eventHandler) = 0;
+  virtual void sendChannelOpenResponse(
+      const proto::messages::ChannelOpenResponse& response,
+      SendPromise::Pointer promise) = 0;
+  virtual messenger::ChannelId getId() const = 0;
 };
 
-}
-}
-}
+}  // namespace navigation
+}  // namespace channel
+}  // namespace aasdk

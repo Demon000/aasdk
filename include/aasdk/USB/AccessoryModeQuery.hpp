@@ -18,34 +18,31 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
 #include <libusb.h>
-#include <list>
+#include <aasdk/USB/IAccessoryModeQuery.hpp>
 #include <aasdk/USB/IUSBEndpoint.hpp>
 #include <aasdk/USB/IUSBWrapper.hpp>
-#include <aasdk/USB/IAccessoryModeQuery.hpp>
+#include <boost/asio.hpp>
+#include <list>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class AccessoryModeQuery : public IAccessoryModeQuery, boost::noncopyable {
+ public:
+  AccessoryModeQuery(boost::asio::io_service& ioService,
+                     IUSBEndpoint::Pointer usbEndpoint);
+  void cancel() override;
 
-class AccessoryModeQuery: public IAccessoryModeQuery, boost::noncopyable
-{
-public:
-    AccessoryModeQuery(boost::asio::io_service& ioService, IUSBEndpoint::Pointer usbEndpoint);
-    void cancel() override;
+ protected:
+  boost::asio::io_service::strand strand_;
+  IUSBEndpoint::Pointer usbEndpoint_;
+  common::Data data_;
+  Promise::Pointer promise_;
 
-protected:
-    boost::asio::io_service::strand strand_;
-    IUSBEndpoint::Pointer usbEndpoint_;
-    common::Data data_;
-    Promise::Pointer promise_;
-
-    static constexpr uint32_t cTransferTimeoutMs = 1000;
-    static constexpr uint32_t USB_TYPE_VENDOR = 0x40;
+  static constexpr uint32_t cTransferTimeoutMs = 1000;
+  static constexpr uint32_t USB_TYPE_VENDOR = 0x40;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

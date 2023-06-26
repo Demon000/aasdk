@@ -18,25 +18,21 @@
 
 #pragma once
 
-#include <memory>
 #include <aasdk/Messenger/Promise.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+class IMessageInStream {
+ public:
+  typedef std::shared_ptr<IMessageInStream> Pointer;
 
-class IMessageInStream
-{
-public:
-    typedef std::shared_ptr<IMessageInStream> Pointer;
+  IMessageInStream() = default;
+  virtual ~IMessageInStream() = default;
 
-    IMessageInStream() = default;
-    virtual ~IMessageInStream() = default;
-
-    virtual void startReceive(ReceivePromise::Pointer promise) = 0;
+  virtual void startReceive(ReceivePromise::Pointer promise) = 0;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

@@ -20,23 +20,21 @@
 
 #include <aasdk/USB/IAccessoryModeQueryFactory.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class AccessoryModeQueryFactory : public IAccessoryModeQueryFactory {
+ public:
+  AccessoryModeQueryFactory(usb::IUSBWrapper& usbWrapper,
+                            boost::asio::io_service& ioService);
+  IAccessoryModeQuery::Pointer createQuery(
+      AccessoryModeQueryType queryType,
+      IUSBEndpoint::Pointer usbEndpoint) override;
 
-
-class AccessoryModeQueryFactory: public IAccessoryModeQueryFactory
-{
-public:
-    AccessoryModeQueryFactory(usb::IUSBWrapper& usbWrapper, boost::asio::io_service& ioService);
-    IAccessoryModeQuery::Pointer createQuery(AccessoryModeQueryType queryType, IUSBEndpoint::Pointer usbEndpoint) override;
-
-private:
-    usb::IUSBWrapper& usbWrapper_;
-    boost::asio::io_service& ioService_;
+ private:
+  usb::IUSBWrapper& usbWrapper_;
+  boost::asio::io_service& ioService_;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

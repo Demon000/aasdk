@@ -21,20 +21,16 @@
 #include <gmock/gmock.h>
 #include <aasdk/USB/IAccessoryModeQueryChainFactory.hpp>
 
+namespace aasdk {
+namespace usb {
+namespace ut {
 
-namespace aasdk
-{
-namespace usb
-{
-namespace ut
-{
-
-class AccessoryModeQueryChainFactoryMock: public IAccessoryModeQueryChainFactory
-{
-public:
-    MOCK_METHOD0(create, IAccessoryModeQueryChain::Pointer());
+class AccessoryModeQueryChainFactoryMock
+    : public IAccessoryModeQueryChainFactory {
+ public:
+  MOCK_METHOD0(create, IAccessoryModeQueryChain::Pointer());
 };
 
-}
-}
-}
+}  // namespace ut
+}  // namespace usb
+}  // namespace aasdk

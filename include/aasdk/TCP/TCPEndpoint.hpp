@@ -18,33 +18,31 @@
 
 #pragma once
 
-#include <boost/asio/ip/tcp.hpp>
 #include <aasdk/TCP/ITCPEndpoint.hpp>
 #include <aasdk/TCP/ITCPWrapper.hpp>
+#include <boost/asio/ip/tcp.hpp>
 
+namespace aasdk {
+namespace tcp {
 
-namespace aasdk
-{
-namespace tcp
-{
+class TCPEndpoint : public ITCPEndpoint,
+                    public std::enable_shared_from_this<TCPEndpoint> {
+ public:
+  TCPEndpoint(ITCPWrapper& tcpWrapper, SocketPointer socket);
 
-class TCPEndpoint: public ITCPEndpoint, public std::enable_shared_from_this<TCPEndpoint>
-{
-public:
-    TCPEndpoint(ITCPWrapper& tcpWrapper, SocketPointer socket);
+  void send(common::DataConstBuffer buffer, Promise::Pointer promise) override;
+  void receive(common::DataBuffer buffer, Promise::Pointer promise) override;
+  void stop() override;
 
-    void send(common::DataConstBuffer buffer, Promise::Pointer promise) override;
-    void receive(common::DataBuffer buffer, Promise::Pointer promise) override;
-    void stop() override;
+ private:
+  using std::enable_shared_from_this<TCPEndpoint>::shared_from_this;
 
-private:
-    using std::enable_shared_from_this<TCPEndpoint>::shared_from_this;
+  void asyncOperationHandler(const boost::system::error_code& ec,
+                             size_t bytesTransferred, Promise::Pointer promise);
 
-    void asyncOperationHandler(const boost::system::error_code& ec, size_t bytesTransferred, Promise::Pointer promise);
-
-    ITCPWrapper& tcpWrapper_;
-    SocketPointer socket_;
+  ITCPWrapper& tcpWrapper_;
+  SocketPointer socket_;
 };
 
-}
-}
+}  // namespace tcp
+}  // namespace aasdk

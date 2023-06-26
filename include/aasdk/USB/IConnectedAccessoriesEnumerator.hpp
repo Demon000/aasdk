@@ -18,25 +18,21 @@
 
 #pragma once
 
-#include <memory>
 #include <aasdk/IO/Promise.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IConnectedAccessoriesEnumerator {
+ public:
+  typedef std::shared_ptr<IConnectedAccessoriesEnumerator> Pointer;
+  typedef io::Promise<bool> Promise;
 
-class IConnectedAccessoriesEnumerator
-{
-public:
-    typedef std::shared_ptr<IConnectedAccessoriesEnumerator> Pointer;
-    typedef io::Promise<bool> Promise;
-
-    virtual ~IConnectedAccessoriesEnumerator() = default;
-    virtual void enumerate(Promise::Pointer promise) = 0;
-    virtual void cancel() = 0;
+  virtual ~IConnectedAccessoriesEnumerator() = default;
+  virtual void enumerate(Promise::Pointer promise) = 0;
+  virtual void cancel() = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

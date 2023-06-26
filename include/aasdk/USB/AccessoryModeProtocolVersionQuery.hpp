@@ -20,25 +20,26 @@
 
 #include <aasdk/USB/AccessoryModeQuery.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class AccessoryModeProtocolVersionQuery
+    : public AccessoryModeQuery,
+      public std::enable_shared_from_this<AccessoryModeProtocolVersionQuery> {
+ public:
+  AccessoryModeProtocolVersionQuery(boost::asio::io_service& ioService,
+                                    IUSBWrapper& usbWrapper,
+                                    IUSBEndpoint::Pointer usbEndpoint);
+  void start(Promise::Pointer promise) override;
 
-class AccessoryModeProtocolVersionQuery: public AccessoryModeQuery, public std::enable_shared_from_this<AccessoryModeProtocolVersionQuery>
-{
-public:
-    AccessoryModeProtocolVersionQuery(boost::asio::io_service& ioService, IUSBWrapper& usbWrapper, IUSBEndpoint::Pointer usbEndpoint);
-    void start(Promise::Pointer promise) override;
+ private:
+  using std::enable_shared_from_this<
+      AccessoryModeProtocolVersionQuery>::shared_from_this;
+  void protocolVersionHandler(size_t bytesTransferred);
 
-private:
-    using std::enable_shared_from_this<AccessoryModeProtocolVersionQuery>::shared_from_this;
-    void protocolVersionHandler(size_t bytesTransferred);
-
-    typedef uint16_t ProtocolVersion;
-    static constexpr uint32_t ACC_REQ_GET_PROTOCOL = 51;
+  typedef uint16_t ProtocolVersion;
+  static constexpr uint32_t ACC_REQ_GET_PROTOCOL = 51;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

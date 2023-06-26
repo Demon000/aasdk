@@ -18,34 +18,32 @@
 
 #pragma once
 
-#include <boost/asio.hpp>
 #include <aasdk/Transport/Transport.hpp>
 #include <aasdk/USB/IAOAPDevice.hpp>
+#include <boost/asio.hpp>
 
+namespace aasdk {
+namespace transport {
 
-namespace aasdk
-{
-namespace transport
-{
+class USBTransport : public Transport {
+ public:
+  USBTransport(boost::asio::io_service& ioService,
+               usb::IAOAPDevice::Pointer aoapDevice);
 
-class USBTransport: public Transport
-{
-public:
-    USBTransport(boost::asio::io_service& ioService, usb::IAOAPDevice::Pointer aoapDevice);
+  void stop() override;
 
-    void stop() override;
+ private:
+  void enqueueReceive(common::DataBuffer buffer) override;
+  void enqueueSend(SendQueue::iterator queueElement) override;
+  void doSend(SendQueue::iterator queueElement, common::Data::size_type offset);
+  void sendHandler(SendQueue::iterator queueElement,
+                   common::Data::size_type offset, size_t bytesTransferred);
 
-private:
-    void enqueueReceive(common::DataBuffer buffer) override;
-    void enqueueSend(SendQueue::iterator queueElement) override;
-    void doSend(SendQueue::iterator queueElement, common::Data::size_type offset);
-    void sendHandler(SendQueue::iterator queueElement, common::Data::size_type offset, size_t bytesTransferred);
+  usb::IAOAPDevice::Pointer aoapDevice_;
 
-    usb::IAOAPDevice::Pointer aoapDevice_;
-
-    static constexpr uint32_t cSendTimeoutMs = 10000;
-    static constexpr uint32_t cReceiveTimeoutMs = 0;
+  static constexpr uint32_t cSendTimeoutMs = 10000;
+  static constexpr uint32_t cReceiveTimeoutMs = 0;
 };
 
-}
-}
+}  // namespace transport
+}  // namespace aasdk

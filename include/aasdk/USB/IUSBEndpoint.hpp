@@ -18,33 +18,32 @@
 
 #pragma once
 
-#include <memory>
-#include <aasdk/USB/USBWrapper.hpp>
 #include <aasdk/Common/Data.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <aasdk/USB/USBWrapper.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IUSBEndpoint {
+ public:
+  typedef std::shared_ptr<IUSBEndpoint> Pointer;
+  typedef io::Promise<size_t> Promise;
 
-class IUSBEndpoint
-{
-public:
-    typedef std::shared_ptr<IUSBEndpoint> Pointer;
-    typedef io::Promise<size_t> Promise;
+  IUSBEndpoint() = default;
+  virtual ~IUSBEndpoint() = default;
 
-    IUSBEndpoint() = default;
-    virtual ~IUSBEndpoint() = default;
-
-    virtual uint8_t getAddress() = 0;
-    virtual void controlTransfer(common::DataBuffer buffer, uint32_t timeout, Promise::Pointer promise) = 0;
-    virtual void bulkTransfer(common::DataBuffer buffer, uint32_t timeout, Promise::Pointer promise) = 0;
-    virtual void interruptTransfer(common::DataBuffer buffer, uint32_t timeout, Promise::Pointer promise) = 0;
-    virtual void cancelTransfers() = 0;
-    virtual DeviceHandle getDeviceHandle() const = 0;
+  virtual uint8_t getAddress() = 0;
+  virtual void controlTransfer(common::DataBuffer buffer, uint32_t timeout,
+                               Promise::Pointer promise) = 0;
+  virtual void bulkTransfer(common::DataBuffer buffer, uint32_t timeout,
+                            Promise::Pointer promise) = 0;
+  virtual void interruptTransfer(common::DataBuffer buffer, uint32_t timeout,
+                                 Promise::Pointer promise) = 0;
+  virtual void cancelTransfers() = 0;
+  virtual DeviceHandle getDeviceHandle() const = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

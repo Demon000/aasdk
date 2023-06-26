@@ -20,19 +20,15 @@
 
 #include <stdint.h>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
-
-enum class FrameType
-{
-    MIDDLE = 0,
-    FIRST = 1 << 0,
-    LAST = 1 << 1,
-    BULK = FIRST | LAST
+enum class FrameType {
+  MIDDLE = 0,
+  FIRST = 1 << 0,
+  LAST = 1 << 1,
+  BULK = FIRST | LAST
 };
 
 }
-}
+}  // namespace aasdk

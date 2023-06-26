@@ -18,30 +18,26 @@
 
 #pragma once
 
-#include <memory>
-#include <boost/asio.hpp>
 #include <libusb.h>
 #include <aasdk/IO/Promise.hpp>
 #include <aasdk/USB/IUSBEndpoint.hpp>
+#include <boost/asio.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class IAccessoryModeQuery {
+ public:
+  typedef std::shared_ptr<IAccessoryModeQuery> Pointer;
+  typedef io::Promise<IUSBEndpoint::Pointer> Promise;
 
-class IAccessoryModeQuery
-{
-public:
-    typedef std::shared_ptr<IAccessoryModeQuery> Pointer;
-    typedef io::Promise<IUSBEndpoint::Pointer> Promise;
+  IAccessoryModeQuery() = default;
+  virtual ~IAccessoryModeQuery() = default;
 
-    IAccessoryModeQuery() = default;
-    virtual ~IAccessoryModeQuery() = default;
-
-    virtual void start(Promise::Pointer promise) = 0;
-    virtual void cancel() = 0;
+  virtual void start(Promise::Pointer promise) = 0;
+  virtual void cancel() = 0;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

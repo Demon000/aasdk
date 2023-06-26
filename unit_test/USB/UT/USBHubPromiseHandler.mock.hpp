@@ -19,24 +19,19 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include <aasdk/USB/IUSBWrapper.hpp>
 #include <aasdk/Error/Error.hpp>
+#include <aasdk/USB/IUSBWrapper.hpp>
 
+namespace aasdk {
+namespace usb {
+namespace ut {
 
-namespace aasdk
-{
-namespace usb
-{
-namespace ut
-{
-
-class USBHubPromiseHandlerMock
-{
-public:
-    MOCK_METHOD1(onResolve, void(DeviceHandle handle));
-    MOCK_METHOD1(onReject, void(const error::Error& e));
+class USBHubPromiseHandlerMock {
+ public:
+  MOCK_METHOD1(onResolve, void(DeviceHandle handle));
+  MOCK_METHOD1(onReject, void(const error::Error& e));
 };
 
-}
-}
-}
+}  // namespace ut
+}  // namespace usb
+}  // namespace aasdk

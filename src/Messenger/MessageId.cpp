@@ -16,74 +16,60 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <iomanip>
-#include <boost/endian/conversion.hpp>
 #include <aasdk/Messenger/MessageId.hpp>
+#include <boost/endian/conversion.hpp>
+#include <iomanip>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
-
-MessageId::MessageId(uint16_t id):
-    id_(id)
-{
-
-}
-MessageId::MessageId(const common::Data& data)
-{
-    id_ = boost::endian::big_to_native(reinterpret_cast<const uint16_t&>(data[0]));
+MessageId::MessageId(uint16_t id) : id_(id) {}
+MessageId::MessageId(const common::Data& data) {
+  id_ =
+      boost::endian::big_to_native(reinterpret_cast<const uint16_t&>(data[0]));
 }
 
-uint16_t MessageId::getId() const
-{
-    return id_;
+uint16_t MessageId::getId() const {
+  return id_;
 }
 
-common::Data MessageId::getData() const
-{
-    const MessageId messageIdBig = boost::endian::native_to_big(id_);
-    const common::DataConstBuffer messageIdBigBuffer(&messageIdBig, sizeof(messageIdBig));
-    return common::createData(messageIdBigBuffer);
+common::Data MessageId::getData() const {
+  const MessageId messageIdBig = boost::endian::native_to_big(id_);
+  const common::DataConstBuffer messageIdBigBuffer(&messageIdBig,
+                                                   sizeof(messageIdBig));
+  return common::createData(messageIdBigBuffer);
 }
 
-bool MessageId::operator>(uint16_t id) const
-{
-    return id > id_;
+bool MessageId::operator>(uint16_t id) const {
+  return id > id_;
 }
 
-bool MessageId::operator<(uint16_t id) const
-{
-    return id < id_;
+bool MessageId::operator<(uint16_t id) const {
+  return id < id_;
 }
 
-bool MessageId::operator==(uint16_t id) const
-{
-    return id == id_;
+bool MessageId::operator==(uint16_t id) const {
+  return id == id_;
 }
 
-MessageId& MessageId::operator=(uint16_t id)
-{
-    id_ = id;
-    return *this;
+MessageId& MessageId::operator=(uint16_t id) {
+  id_ = id;
+  return *this;
 }
 
-bool MessageId::operator>=(uint16_t id) const
-{
-    return id >= id_;
+bool MessageId::operator>=(uint16_t id) const {
+  return id >= id_;
 }
 
-bool MessageId::operator<=(uint16_t id) const
-{
-    return id <= id_;
+bool MessageId::operator<=(uint16_t id) const {
+  return id <= id_;
 }
 
-std::ostream& operator<<(std::ostream& stream, const aasdk::messenger::MessageId& messageId)
-{
-    stream << "0x" << std::hex << messageId.getId() << std::dec;
-    return stream;
+std::ostream& operator<<(std::ostream& stream,
+                         const aasdk::messenger::MessageId& messageId) {
+  stream << "0x" << std::hex << messageId.getId() << std::dec;
+  return stream;
 }
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

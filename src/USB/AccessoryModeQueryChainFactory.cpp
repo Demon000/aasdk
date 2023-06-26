@@ -16,29 +16,23 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <aasdk/USB/AccessoryModeQueryChainFactory.hpp>
 #include <aasdk/USB/AccessoryModeQueryChain.hpp>
+#include <aasdk/USB/AccessoryModeQueryChainFactory.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+AccessoryModeQueryChainFactory::AccessoryModeQueryChainFactory(
+    IUSBWrapper& usbWrapper, boost::asio::io_service& ioService,
+    IAccessoryModeQueryFactory& queryFactory)
+    : usbWrapper_(usbWrapper),
+      ioService_(ioService),
+      queryFactory_(queryFactory) {}
 
-AccessoryModeQueryChainFactory::AccessoryModeQueryChainFactory(IUSBWrapper& usbWrapper,
-                                                               boost::asio::io_service& ioService,
-                                                               IAccessoryModeQueryFactory& queryFactory)
-    : usbWrapper_(usbWrapper)
-    , ioService_(ioService)
-    , queryFactory_(queryFactory)
-{
-
+IAccessoryModeQueryChain::Pointer AccessoryModeQueryChainFactory::create() {
+  return std::make_shared<AccessoryModeQueryChain>(usbWrapper_, ioService_,
+                                                   queryFactory_);
 }
 
-IAccessoryModeQueryChain::Pointer AccessoryModeQueryChainFactory::create()
-{
-    return std::make_shared<AccessoryModeQueryChain>(usbWrapper_, ioService_, queryFactory_);
-}
-
-}
-}
+}  // namespace usb
+}  // namespace aasdk

@@ -16,58 +16,47 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <cstring>
-#include <aasdk/Transport/DataSink.hpp>
 #include <aasdk/Error/Error.hpp>
+#include <aasdk/Transport/DataSink.hpp>
+#include <cstring>
 
+namespace aasdk {
+namespace transport {
 
-namespace aasdk
-{
-namespace transport
-{
+DataSink::DataSink() : data_(common::cStaticDataSize) {}
 
-DataSink::DataSink()
-    : data_(common::cStaticDataSize)
-{
+common::DataBuffer DataSink::fill() {
+  const auto offset = data_.size();
+  data_.resize(data_.size() + cChunkSize);
+
+  auto ptr =
+      data_.is_linearized() ? &data_[offset] : data_.linearize() + offset;
+  return common::DataBuffer(ptr, cChunkSize);
 }
 
-common::DataBuffer DataSink::fill()
-{
-    const auto offset = data_.size();
-    data_.resize(data_.size() + cChunkSize);
+void DataSink::commit(common::Data::size_type size) {
+  if (size > cChunkSize) {
+    throw error::Error(error::ErrorCode::DATA_SINK_COMMIT_OVERFLOW);
+  }
 
-    auto ptr = data_.is_linearized() ? &data_[offset] : data_.linearize() + offset;
-    return common::DataBuffer(ptr, cChunkSize);
+  data_.erase_end((cChunkSize - size));
 }
 
-void DataSink::commit(common::Data::size_type size)
-{
-    if(size > cChunkSize)
-    {
-        throw error::Error(error::ErrorCode::DATA_SINK_COMMIT_OVERFLOW);
-    }
-
-    data_.erase_end((cChunkSize - size));
+common::Data::size_type DataSink::getAvailableSize() {
+  return data_.size();
 }
 
-common::Data::size_type DataSink::getAvailableSize()
-{
-    return data_.size();
+common::Data DataSink::consume(common::Data::size_type size) {
+  if (size > data_.size()) {
+    throw error::Error(error::ErrorCode::DATA_SINK_CONSUME_UNDERFLOW);
+  }
+
+  common::Data data(size, 0);
+  std::copy(data_.begin(), data_.begin() + size, data.begin());
+  data_.erase_begin(size);
+
+  return data;
 }
 
-common::Data DataSink::consume(common::Data::size_type size)
-{
-    if(size > data_.size())
-    {
-        throw error::Error(error::ErrorCode::DATA_SINK_CONSUME_UNDERFLOW);
-    }
-
-    common::Data data(size, 0);
-    std::copy(data_.begin(), data_.begin() + size, data.begin());
-    data_.erase_begin(size);
-
-    return data;
-}
-
-}
-}
+}  // namespace transport
+}  // namespace aasdk

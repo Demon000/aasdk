@@ -18,32 +18,30 @@
 
 #pragma once
 
-#include <memory>
 #include <aasdk/Common/Data.hpp>
+#include <memory>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+class ICryptor {
+ public:
+  typedef std::shared_ptr<ICryptor> Pointer;
 
-class ICryptor
-{
-public:
-    typedef std::shared_ptr<ICryptor> Pointer;
+  ICryptor() = default;
+  virtual ~ICryptor() = default;
 
-    ICryptor() = default;
-    virtual ~ICryptor() = default;
-
-    virtual void init() = 0;
-    virtual void deinit() = 0;
-    virtual bool doHandshake() = 0;
-    virtual size_t encrypt(common::Data& output, const common::DataConstBuffer& buffer) = 0;
-    virtual size_t decrypt(common::Data& output, const common::DataConstBuffer& buffer) = 0;
-    virtual common::Data readHandshakeBuffer() = 0;
-    virtual void writeHandshakeBuffer(const common::DataConstBuffer& buffer) = 0;
-    virtual bool isActive() const = 0;
+  virtual void init() = 0;
+  virtual void deinit() = 0;
+  virtual bool doHandshake() = 0;
+  virtual size_t encrypt(common::Data& output,
+                         const common::DataConstBuffer& buffer) = 0;
+  virtual size_t decrypt(common::Data& output,
+                         const common::DataConstBuffer& buffer) = 0;
+  virtual common::Data readHandshakeBuffer() = 0;
+  virtual void writeHandshakeBuffer(const common::DataConstBuffer& buffer) = 0;
+  virtual bool isActive() const = 0;
 };
 
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

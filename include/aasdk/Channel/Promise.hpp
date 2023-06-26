@@ -18,16 +18,13 @@
 
 #pragma once
 
-#include <aasdk/Messenger/Message.hpp>
 #include <aasdk/IO/Promise.hpp>
+#include <aasdk/Messenger/Message.hpp>
 
-
-namespace aasdk
-{
-namespace channel
-{
+namespace aasdk {
+namespace channel {
 
 typedef io::Promise<void> SendPromise;
 
 }
-}
+}  // namespace aasdk

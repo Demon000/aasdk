@@ -16,38 +16,30 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <boost/endian/conversion.hpp>
 #include <aasdk/Messenger/Timestamp.hpp>
+#include <boost/endian/conversion.hpp>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+Timestamp::Timestamp(ValueType stamp) : stamp_(stamp) {}
 
-Timestamp::Timestamp(ValueType stamp)
-    : stamp_(stamp)
-{
-
+Timestamp::Timestamp(const common::DataConstBuffer& buffer) {
+  const ValueType& timestampBig =
+      reinterpret_cast<const ValueType&>(buffer.cdata[0]);
+  stamp_ = boost::endian::big_to_native(timestampBig);
 }
 
-Timestamp::Timestamp(const common::DataConstBuffer& buffer)
-{
-    const ValueType& timestampBig = reinterpret_cast<const ValueType&>(buffer.cdata[0]);
-    stamp_ = boost::endian::big_to_native(timestampBig);
+common::Data Timestamp::getData() const {
+  const ValueType timestampBig = boost::endian::native_to_big(stamp_);
+  const common::DataConstBuffer timestampBuffer(&timestampBig,
+                                                sizeof(timestampBig));
+  return common::createData(timestampBuffer);
 }
 
-common::Data Timestamp::getData() const
-{
-    const ValueType timestampBig = boost::endian::native_to_big(stamp_);
-    const common::DataConstBuffer timestampBuffer(&timestampBig, sizeof(timestampBig));
-    return common::createData(timestampBuffer);
+Timestamp::ValueType Timestamp::getValue() const {
+  return stamp_;
 }
 
-Timestamp::ValueType Timestamp::getValue() const
-{
-    return stamp_;
-}
-
-}
-}
+}  // namespace messenger
+}  // namespace aasdk

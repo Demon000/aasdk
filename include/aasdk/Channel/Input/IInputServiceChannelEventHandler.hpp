@@ -18,31 +18,28 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
 #include <aasdk_proto/BindingRequestMessage.pb.h>
+#include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
+#include <stdint.h>
 
+namespace aasdk {
+namespace channel {
+namespace input {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace input
-{
+class IInputServiceChannelEventHandler {
+ public:
+  typedef std::shared_ptr<IInputServiceChannelEventHandler> Pointer;
 
-class IInputServiceChannelEventHandler
-{
-public:
-    typedef std::shared_ptr<IInputServiceChannelEventHandler> Pointer;
+  IInputServiceChannelEventHandler() = default;
+  virtual ~IInputServiceChannelEventHandler() = default;
 
-    IInputServiceChannelEventHandler() = default;
-    virtual ~IInputServiceChannelEventHandler() = default;
-
-    virtual void onChannelOpenRequest(const proto::messages::ChannelOpenRequest& request) = 0;
-    virtual void onBindingRequest(const proto::messages::BindingRequest& request) = 0;
-    virtual void onChannelError(const error::Error& e) = 0;
+  virtual void onChannelOpenRequest(
+      const proto::messages::ChannelOpenRequest& request) = 0;
+  virtual void onBindingRequest(
+      const proto::messages::BindingRequest& request) = 0;
+  virtual void onChannelError(const error::Error& e) = 0;
 };
 
-}
-}
-}
+}  // namespace input
+}  // namespace channel
+}  // namespace aasdk

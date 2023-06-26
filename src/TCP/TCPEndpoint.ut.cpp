@@ -16,115 +16,119 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <boost/test/unit_test.hpp>
-#include <aasdk/TCP/UT/TCPWrapper.mock.hpp>
-#include <aasdk/TCP/UT/TCPEndpointPromiseHandler.mock.hpp>
 #include <aasdk/TCP/TCPEndpoint.hpp>
+#include <aasdk/TCP/UT/TCPEndpointPromiseHandler.mock.hpp>
+#include <aasdk/TCP/UT/TCPWrapper.mock.hpp>
+#include <boost/test/unit_test.hpp>
 
-
-namespace aasdk
-{
-namespace tcp
-{
-namespace ut
-{
+namespace aasdk {
+namespace tcp {
+namespace ut {
 
 using ::testing::_;
 using ::testing::SaveArg;
 
-class TCPEndpointUnitTest
-{
-protected:
-    TCPEndpointUnitTest()
-        : socket_(std::make_shared<boost::asio::ip::tcp::socket>(ioService_))
-        , promise_(ITCPEndpoint::Promise::defer(ioService_))
-    {
-        promise_->then(std::bind(&TCPEndpointPromiseHandlerMock::onResolve, &promiseHandlerMock_, std::placeholders::_1),
-                       std::bind(&TCPEndpointPromiseHandlerMock::onReject, &promiseHandlerMock_, std::placeholders::_1));
-    }
+class TCPEndpointUnitTest {
+ protected:
+  TCPEndpointUnitTest()
+      : socket_(std::make_shared<boost::asio::ip::tcp::socket>(ioService_)),
+        promise_(ITCPEndpoint::Promise::defer(ioService_)) {
+    promise_->then(std::bind(&TCPEndpointPromiseHandlerMock::onResolve,
+                             &promiseHandlerMock_, std::placeholders::_1),
+                   std::bind(&TCPEndpointPromiseHandlerMock::onReject,
+                             &promiseHandlerMock_, std::placeholders::_1));
+  }
 
-    TCPWrapperMock tcpWrapperMock_;
-    TCPEndpointPromiseHandlerMock promiseHandlerMock_;
-    boost::asio::io_service ioService_;
-    ITCPEndpoint::SocketPointer socket_;
-    ITCPEndpoint::Promise::Pointer promise_;
+  TCPWrapperMock tcpWrapperMock_;
+  TCPEndpointPromiseHandlerMock promiseHandlerMock_;
+  boost::asio::io_service ioService_;
+  ITCPEndpoint::SocketPointer socket_;
+  ITCPEndpoint::Promise::Pointer promise_;
 };
 
-BOOST_FIXTURE_TEST_CASE(TCPEndpoint_Receive, TCPEndpointUnitTest)
-{
-    auto tcpEndpoint = std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
+BOOST_FIXTURE_TEST_CASE(TCPEndpoint_Receive, TCPEndpointUnitTest) {
+  auto tcpEndpoint =
+      std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
 
-    common::DataBuffer buffer;
-    ITCPWrapper::Handler handler;
-    EXPECT_CALL(tcpWrapperMock_, asyncRead(_, _, _)).WillOnce(DoAll(SaveArg<1>(&buffer), SaveArg<2>(&handler)));
+  common::DataBuffer buffer;
+  ITCPWrapper::Handler handler;
+  EXPECT_CALL(tcpWrapperMock_, asyncRead(_, _, _))
+      .WillOnce(DoAll(SaveArg<1>(&buffer), SaveArg<2>(&handler)));
 
-    common::Data actualData(100, 0);
-    tcpEndpoint->receive(common::DataBuffer(actualData), std::move(promise_));
+  common::Data actualData(100, 0);
+  tcpEndpoint->receive(common::DataBuffer(actualData), std::move(promise_));
 
-    const common::Data expectedData(actualData.size(), 0x5F);
-    std::copy(expectedData.begin(), expectedData.end(), buffer.data);
+  const common::Data expectedData(actualData.size(), 0x5F);
+  std::copy(expectedData.begin(), expectedData.end(), buffer.data);
 
-    EXPECT_CALL(promiseHandlerMock_, onResolve(expectedData.size()));
-    EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
-    handler(boost::system::error_code(), expectedData.size());
+  EXPECT_CALL(promiseHandlerMock_, onResolve(expectedData.size()));
+  EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
+  handler(boost::system::error_code(), expectedData.size());
 
-    ioService_.run();
+  ioService_.run();
 
-    BOOST_CHECK_EQUAL_COLLECTIONS(actualData.begin(), actualData.end(), expectedData.begin(), expectedData.end());
+  BOOST_CHECK_EQUAL_COLLECTIONS(actualData.begin(), actualData.end(),
+                                expectedData.begin(), expectedData.end());
 }
 
-BOOST_FIXTURE_TEST_CASE(TCPEndpoint_ReceiveError, TCPEndpointUnitTest)
-{
-    auto tcpEndpoint = std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
+BOOST_FIXTURE_TEST_CASE(TCPEndpoint_ReceiveError, TCPEndpointUnitTest) {
+  auto tcpEndpoint =
+      std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
 
-    common::DataBuffer buffer;
-    ITCPWrapper::Handler handler;
-    EXPECT_CALL(tcpWrapperMock_, asyncRead(_, _, _)).WillOnce(DoAll(SaveArg<1>(&buffer), SaveArg<2>(&handler)));
+  common::DataBuffer buffer;
+  ITCPWrapper::Handler handler;
+  EXPECT_CALL(tcpWrapperMock_, asyncRead(_, _, _))
+      .WillOnce(DoAll(SaveArg<1>(&buffer), SaveArg<2>(&handler)));
 
-    common::Data actualData(100, 0);
-    tcpEndpoint->receive(common::DataBuffer(actualData), std::move(promise_));
+  common::Data actualData(100, 0);
+  tcpEndpoint->receive(common::DataBuffer(actualData), std::move(promise_));
 
-    EXPECT_CALL(promiseHandlerMock_, onResolve(_)).Times(0);
-    EXPECT_CALL(promiseHandlerMock_, onReject(error::Error(error::ErrorCode::TCP_TRANSFER, boost::asio::error::bad_descriptor)));
-    handler(boost::asio::error::bad_descriptor, 0);
+  EXPECT_CALL(promiseHandlerMock_, onResolve(_)).Times(0);
+  EXPECT_CALL(promiseHandlerMock_,
+              onReject(error::Error(error::ErrorCode::TCP_TRANSFER,
+                                    boost::asio::error::bad_descriptor)));
+  handler(boost::asio::error::bad_descriptor, 0);
 
-    ioService_.run();
+  ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(TCPEndpoint_Send, TCPEndpointUnitTest)
-{
-    auto tcpEndpoint = std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
+BOOST_FIXTURE_TEST_CASE(TCPEndpoint_Send, TCPEndpointUnitTest) {
+  auto tcpEndpoint =
+      std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
 
-    common::Data actualData(100, 0);
-    common::DataConstBuffer buffer(actualData);
-    ITCPWrapper::Handler handler;
-    EXPECT_CALL(tcpWrapperMock_, asyncWrite(_, buffer, _)).WillOnce(SaveArg<2>(&handler));
-    tcpEndpoint->send(common::DataConstBuffer(actualData), std::move(promise_));
+  common::Data actualData(100, 0);
+  common::DataConstBuffer buffer(actualData);
+  ITCPWrapper::Handler handler;
+  EXPECT_CALL(tcpWrapperMock_, asyncWrite(_, buffer, _))
+      .WillOnce(SaveArg<2>(&handler));
+  tcpEndpoint->send(common::DataConstBuffer(actualData), std::move(promise_));
 
-    EXPECT_CALL(promiseHandlerMock_, onResolve(actualData.size()));
-    EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
-    handler(boost::system::error_code(), actualData.size());
+  EXPECT_CALL(promiseHandlerMock_, onResolve(actualData.size()));
+  EXPECT_CALL(promiseHandlerMock_, onReject(_)).Times(0);
+  handler(boost::system::error_code(), actualData.size());
 
-    ioService_.run();
+  ioService_.run();
 }
 
-BOOST_FIXTURE_TEST_CASE(TCPEndpoint_SendError, TCPEndpointUnitTest)
-{
-    auto tcpEndpoint = std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
+BOOST_FIXTURE_TEST_CASE(TCPEndpoint_SendError, TCPEndpointUnitTest) {
+  auto tcpEndpoint =
+      std::make_shared<TCPEndpoint>(tcpWrapperMock_, std::move(socket_));
 
-    common::Data actualData(100, 0);
-    common::DataConstBuffer buffer(actualData);
-    ITCPWrapper::Handler handler;
-    EXPECT_CALL(tcpWrapperMock_, asyncWrite(_, buffer, _)).WillOnce(SaveArg<2>(&handler));
-    tcpEndpoint->send(common::DataConstBuffer(actualData), std::move(promise_));
+  common::Data actualData(100, 0);
+  common::DataConstBuffer buffer(actualData);
+  ITCPWrapper::Handler handler;
+  EXPECT_CALL(tcpWrapperMock_, asyncWrite(_, buffer, _))
+      .WillOnce(SaveArg<2>(&handler));
+  tcpEndpoint->send(common::DataConstBuffer(actualData), std::move(promise_));
 
-    EXPECT_CALL(promiseHandlerMock_, onResolve(_)).Times(0);
-    EXPECT_CALL(promiseHandlerMock_, onReject(error::Error(error::ErrorCode::OPERATION_ABORTED)));
-    handler(boost::asio::error::operation_aborted, 0);
+  EXPECT_CALL(promiseHandlerMock_, onResolve(_)).Times(0);
+  EXPECT_CALL(promiseHandlerMock_,
+              onReject(error::Error(error::ErrorCode::OPERATION_ABORTED)));
+  handler(boost::asio::error::operation_aborted, 0);
 
-    ioService_.run();
+  ioService_.run();
 }
 
-}
-}
-}
+}  // namespace ut
+}  // namespace tcp
+}  // namespace aasdk

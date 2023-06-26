@@ -18,44 +18,47 @@
 
 #pragma once
 
-#include <utility>
-#include <boost/asio.hpp>
 #include <libusb.h>
-#include <aasdk/USB/IUSBWrapper.hpp>
 #include <aasdk/USB/IAOAPDevice.hpp>
+#include <aasdk/USB/IUSBWrapper.hpp>
+#include <boost/asio.hpp>
+#include <utility>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class AOAPDevice : public IAOAPDevice, boost::noncopyable {
+ public:
+  AOAPDevice(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService,
+             DeviceHandle handle,
+             const libusb_interface_descriptor* interfaceDescriptor);
+  ~AOAPDevice() override;
 
-class AOAPDevice: public IAOAPDevice, boost::noncopyable
-{
-public:
-    AOAPDevice(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService, DeviceHandle handle, const libusb_interface_descriptor* interfaceDescriptor);
-    ~AOAPDevice() override;
+  IUSBEndpoint& getInEndpoint() override;
+  IUSBEndpoint& getOutEndpoint() override;
 
-    IUSBEndpoint& getInEndpoint() override;
-    IUSBEndpoint& getOutEndpoint() override;
+  static IAOAPDevice::Pointer create(IUSBWrapper& usbWrapper,
+                                     boost::asio::io_service& ioService,
+                                     DeviceHandle handle);
 
-    static IAOAPDevice::Pointer create(IUSBWrapper& usbWrapper, boost::asio::io_service& ioService, DeviceHandle handle);
+ private:
+  static ConfigDescriptorHandle getConfigDescriptor(IUSBWrapper& usbWrapper,
+                                                    DeviceHandle handle);
+  static const libusb_interface* getInterface(
+      const ConfigDescriptorHandle& configDescriptorHandle);
+  static const libusb_interface_descriptor* getInterfaceDescriptor(
+      const libusb_interface* interface);
 
-private:
-    static ConfigDescriptorHandle getConfigDescriptor(IUSBWrapper& usbWrapper, DeviceHandle handle);
-    static const libusb_interface* getInterface(const ConfigDescriptorHandle& configDescriptorHandle);
-    static const libusb_interface_descriptor* getInterfaceDescriptor(const libusb_interface* interface);
+  IUSBWrapper& usbWrapper_;
+  DeviceHandle handle_;
+  const libusb_interface_descriptor* interfaceDescriptor_;
+  IUSBEndpoint::Pointer inEndpoint_;
+  IUSBEndpoint::Pointer outEndpoint_;
 
-    IUSBWrapper& usbWrapper_;
-    DeviceHandle handle_;
-    const libusb_interface_descriptor* interfaceDescriptor_;
-    IUSBEndpoint::Pointer inEndpoint_;
-    IUSBEndpoint::Pointer outEndpoint_;
-
-    static constexpr uint16_t cGoogleVendorId = 0x18D1;
-    static constexpr uint16_t cAOAPId = 0x2D00;
-    static constexpr uint16_t cAOAPWithAdbId = 0x2D01;
+  static constexpr uint16_t cGoogleVendorId = 0x18D1;
+  static constexpr uint16_t cAOAPId = 0x2D00;
+  static constexpr uint16_t cAOAPWithAdbId = 0x2D01;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk

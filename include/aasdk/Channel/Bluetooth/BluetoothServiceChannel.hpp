@@ -18,34 +18,44 @@
 
 #pragma once
 
-#include <aasdk/Channel/ServiceChannel.hpp>
 #include <aasdk/Channel/Bluetooth/IBluetoothServiceChannel.hpp>
+#include <aasdk/Channel/ServiceChannel.hpp>
 
+namespace aasdk {
+namespace channel {
+namespace bluetooth {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace bluetooth
-{
+class BluetoothServiceChannel
+    : public IBluetoothServiceChannel,
+      public ServiceChannel,
+      public std::enable_shared_from_this<BluetoothServiceChannel> {
+ public:
+  BluetoothServiceChannel(boost::asio::io_service::strand& strand,
+                          messenger::IMessenger::Pointer messenger);
 
-class BluetoothServiceChannel: public IBluetoothServiceChannel, public ServiceChannel, public std::enable_shared_from_this<BluetoothServiceChannel>
-{
-public:
-    BluetoothServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger);
+  void receive(
+      IBluetoothServiceChannelEventHandler::Pointer eventHandler) override;
+  messenger::ChannelId getId() const override;
+  void sendChannelOpenResponse(
+      const proto::messages::ChannelOpenResponse& response,
+      SendPromise::Pointer promise) override;
+  void sendBluetoothPairingResponse(
+      const proto::messages::BluetoothPairingResponse& response,
+      SendPromise::Pointer promise) override;
 
-    void receive(IBluetoothServiceChannelEventHandler::Pointer eventHandler) override;
-    messenger::ChannelId getId() const override;
-    void sendChannelOpenResponse(const proto::messages::ChannelOpenResponse& response, SendPromise::Pointer promise) override;
-    void sendBluetoothPairingResponse(const proto::messages::BluetoothPairingResponse& response, SendPromise::Pointer promise) override;
-
-private:
-    using std::enable_shared_from_this<BluetoothServiceChannel>::shared_from_this;
-    void messageHandler(messenger::Message::Pointer message, IBluetoothServiceChannelEventHandler::Pointer eventHandler);
-    void handleChannelOpenRequest(const common::DataConstBuffer& payload, IBluetoothServiceChannelEventHandler::Pointer eventHandler);
-    void handleBluetoothPairingRequest(const common::DataConstBuffer& payload, IBluetoothServiceChannelEventHandler::Pointer eventHandler);
+ private:
+  using std::enable_shared_from_this<BluetoothServiceChannel>::shared_from_this;
+  void messageHandler(
+      messenger::Message::Pointer message,
+      IBluetoothServiceChannelEventHandler::Pointer eventHandler);
+  void handleChannelOpenRequest(
+      const common::DataConstBuffer& payload,
+      IBluetoothServiceChannelEventHandler::Pointer eventHandler);
+  void handleBluetoothPairingRequest(
+      const common::DataConstBuffer& payload,
+      IBluetoothServiceChannelEventHandler::Pointer eventHandler);
 };
 
-}
-}
-}
+}  // namespace bluetooth
+}  // namespace channel
+}  // namespace aasdk

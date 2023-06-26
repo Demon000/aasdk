@@ -18,32 +18,27 @@
 
 #pragma once
 
-#include <limits>
-#include <boost/circular_buffer.hpp>
 #include <aasdk/Common/Data.hpp>
+#include <boost/circular_buffer.hpp>
+#include <limits>
 
+namespace aasdk {
+namespace transport {
 
+class DataSink {
+ public:
+  DataSink();
 
-namespace aasdk
-{
-namespace transport
-{
+  common::DataBuffer fill();
+  void commit(common::Data::size_type size);
 
-class DataSink
-{
-public:
-    DataSink();
+  common::Data::size_type getAvailableSize();
+  common::Data consume(common::Data::size_type size);
 
-    common::DataBuffer fill();
-    void commit(common::Data::size_type size);
-
-    common::Data::size_type getAvailableSize();
-    common::Data consume(common::Data::size_type size);
-
-private:
-    boost::circular_buffer<common::Data::value_type> data_;
-    static constexpr common::Data::size_type cChunkSize = 16384;
+ private:
+  boost::circular_buffer<common::Data::value_type> data_;
+  static constexpr common::Data::size_type cChunkSize = 16384;
 };
 
-}
-}
+}  // namespace transport
+}  // namespace aasdk

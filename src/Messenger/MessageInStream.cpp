@@ -16,154 +16,143 @@
 *  along with aasdk. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <aasdk/Messenger/MessageInStream.hpp>
 #include <aasdk/Error/Error.hpp>
+#include <aasdk/Messenger/MessageInStream.hpp>
 
+namespace aasdk {
+namespace messenger {
 
-namespace aasdk
-{
-namespace messenger
-{
+MessageInStream::MessageInStream(boost::asio::io_service& ioService,
+                                 transport::ITransport::Pointer transport,
+                                 ICryptor::Pointer cryptor)
+    : strand_(ioService),
+      transport_(std::move(transport)),
+      cryptor_(std::move(cryptor)) {}
 
-MessageInStream::MessageInStream(boost::asio::io_service& ioService, transport::ITransport::Pointer transport, ICryptor::Pointer cryptor)
-    : strand_(ioService)
-    , transport_(std::move(transport))
-    , cryptor_(std::move(cryptor))
-{
+void MessageInStream::startReceive(ReceivePromise::Pointer promise) {
+  strand_.dispatch([this, self = this->shared_from_this(),
+                    promise = std::move(promise)]() mutable {
+    if (promise_ == nullptr) {
+      promise_ = std::move(promise);
 
-}
-
-void MessageInStream::startReceive(ReceivePromise::Pointer promise)
-{
-    strand_.dispatch([this, self = this->shared_from_this(), promise = std::move(promise)]() mutable {
-        if(promise_ == nullptr)
-        {
-            promise_ = std::move(promise);
-
-            auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
-            transportPromise->then(
-                [this, self = this->shared_from_this()](common::Data data) mutable {
-                    this->receiveFrameHeaderHandler(common::DataConstBuffer(data));
-                },
-                [this, self = this->shared_from_this()](const error::Error& e) mutable {
-                    promise_->reject(e);
-                    promise_.reset();
-                });
-
-            transport_->receive(FrameHeader::getSizeOf(), std::move(transportPromise));
-        }
-        else
-        {
-            promise->reject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS));
-        }
-    });
-}
-
-void MessageInStream::receiveFrameHeaderHandler(const common::DataConstBuffer& buffer)
-{
-    FrameHeader frameHeader(buffer);
-
-    if(message_ != nullptr && message_->getChannelId() != frameHeader.getChannelId())
-    {
-        messageBuffer_[message_->getChannelId()] = message_;
-        message_ = nullptr;
-    }
-
-    auto bufferedMessage = messageBuffer_.find(frameHeader.getChannelId());
-
-    if(bufferedMessage != messageBuffer_.end())
-    {
-        if(frameHeader.getType() != FrameType::FIRST)
-        {
-            message_ = bufferedMessage->second;
-        }
-        else
-        {
-            message_ = std::make_shared<Message>(frameHeader.getChannelId(), frameHeader.getEncryptionType(), frameHeader.getMessageType());
-        }
-        messageBuffer_.erase(bufferedMessage);
-    }
-    else if(message_ == nullptr)
-    {
-        message_ = std::make_shared<Message>(frameHeader.getChannelId(), frameHeader.getEncryptionType(), frameHeader.getMessageType());
-    }
-
-    recentFrameType_ = frameHeader.getType();
-    const size_t frameSize = FrameSize::getSizeOf(frameHeader.getType() == FrameType::FIRST ? FrameSizeType::EXTENDED : FrameSizeType::SHORT);
-
-    auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
-    transportPromise->then(
-        [this, self = this->shared_from_this()](common::Data data) mutable {
-            this->receiveFrameSizeHandler(common::DataConstBuffer(data));
-        },
-        [this, self = this->shared_from_this()](const error::Error& e) mutable {
-            message_.reset();
+      auto transportPromise =
+          transport::ITransport::ReceivePromise::defer(strand_);
+      transportPromise->then(
+          [this, self = this->shared_from_this()](common::Data data) mutable {
+            this->receiveFrameHeaderHandler(common::DataConstBuffer(data));
+          },
+          [this,
+           self = this->shared_from_this()](const error::Error& e) mutable {
             promise_->reject(e);
             promise_.reset();
-        });
+          });
 
-    transport_->receive(frameSize, std::move(transportPromise));
+      transport_->receive(FrameHeader::getSizeOf(),
+                          std::move(transportPromise));
+    } else {
+      promise->reject(error::Error(error::ErrorCode::OPERATION_IN_PROGRESS));
+    }
+  });
 }
 
-void MessageInStream::receiveFrameSizeHandler(const common::DataConstBuffer& buffer)
-{
-    auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
-    transportPromise->then(
-        [this, self = this->shared_from_this()](common::Data data) mutable {
-            this->receiveFramePayloadHandler(common::DataConstBuffer(data));
-        },
-        [this, self = this->shared_from_this()](const error::Error& e) mutable {
-            message_.reset();
-            promise_->reject(e);
-            promise_.reset();
-        });
+void MessageInStream::receiveFrameHeaderHandler(
+    const common::DataConstBuffer& buffer) {
+  FrameHeader frameHeader(buffer);
 
-    FrameSize frameSize(buffer);
-    transport_->receive(frameSize.getSize(), std::move(transportPromise));
-}
+  if (message_ != nullptr &&
+      message_->getChannelId() != frameHeader.getChannelId()) {
+    messageBuffer_[message_->getChannelId()] = message_;
+    message_ = nullptr;
+  }
 
-void MessageInStream::receiveFramePayloadHandler(const common::DataConstBuffer& buffer)
-{   
-    if(message_->getEncryptionType() == EncryptionType::ENCRYPTED)
-    {
-        try
-        {
-            cryptor_->decrypt(message_->getPayload(), buffer);
-        }
-        catch(const error::Error& e)
-        {
-            message_.reset();
-            promise_->reject(e);
-            promise_.reset();
-            return;
-        }
+  auto bufferedMessage = messageBuffer_.find(frameHeader.getChannelId());
+
+  if (bufferedMessage != messageBuffer_.end()) {
+    if (frameHeader.getType() != FrameType::FIRST) {
+      message_ = bufferedMessage->second;
+    } else {
+      message_ = std::make_shared<Message>(frameHeader.getChannelId(),
+                                           frameHeader.getEncryptionType(),
+                                           frameHeader.getMessageType());
     }
-    else
-    {
-        message_->insertPayload(buffer);
-    }
+    messageBuffer_.erase(bufferedMessage);
+  } else if (message_ == nullptr) {
+    message_ = std::make_shared<Message>(frameHeader.getChannelId(),
+                                         frameHeader.getEncryptionType(),
+                                         frameHeader.getMessageType());
+  }
 
-    if(recentFrameType_ == FrameType::BULK || recentFrameType_ == FrameType::LAST)
-    {
-        promise_->resolve(std::move(message_));
+  recentFrameType_ = frameHeader.getType();
+  const size_t frameSize = FrameSize::getSizeOf(
+      frameHeader.getType() == FrameType::FIRST ? FrameSizeType::EXTENDED
+                                                : FrameSizeType::SHORT);
+
+  auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
+  transportPromise->then(
+      [this, self = this->shared_from_this()](common::Data data) mutable {
+        this->receiveFrameSizeHandler(common::DataConstBuffer(data));
+      },
+      [this, self = this->shared_from_this()](const error::Error& e) mutable {
+        message_.reset();
+        promise_->reject(e);
         promise_.reset();
-    }
-    else
-    {
-        auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
-        transportPromise->then(
-            [this, self = this->shared_from_this()](common::Data data) mutable {
-                this->receiveFrameHeaderHandler(common::DataConstBuffer(data));
-            },
-            [this, self = this->shared_from_this()](const error::Error& e) mutable {
-                message_.reset();
-                promise_->reject(e);
-                promise_.reset();
-            });
+      });
 
-        transport_->receive(FrameHeader::getSizeOf(), std::move(transportPromise));
-    }
+  transport_->receive(frameSize, std::move(transportPromise));
 }
 
+void MessageInStream::receiveFrameSizeHandler(
+    const common::DataConstBuffer& buffer) {
+  auto transportPromise = transport::ITransport::ReceivePromise::defer(strand_);
+  transportPromise->then(
+      [this, self = this->shared_from_this()](common::Data data) mutable {
+        this->receiveFramePayloadHandler(common::DataConstBuffer(data));
+      },
+      [this, self = this->shared_from_this()](const error::Error& e) mutable {
+        message_.reset();
+        promise_->reject(e);
+        promise_.reset();
+      });
+
+  FrameSize frameSize(buffer);
+  transport_->receive(frameSize.getSize(), std::move(transportPromise));
 }
+
+void MessageInStream::receiveFramePayloadHandler(
+    const common::DataConstBuffer& buffer) {
+  if (message_->getEncryptionType() == EncryptionType::ENCRYPTED) {
+    try {
+      cryptor_->decrypt(message_->getPayload(), buffer);
+    } catch (const error::Error& e) {
+      message_.reset();
+      promise_->reject(e);
+      promise_.reset();
+      return;
+    }
+  } else {
+    message_->insertPayload(buffer);
+  }
+
+  if (recentFrameType_ == FrameType::BULK ||
+      recentFrameType_ == FrameType::LAST) {
+    promise_->resolve(std::move(message_));
+    promise_.reset();
+  } else {
+    auto transportPromise =
+        transport::ITransport::ReceivePromise::defer(strand_);
+    transportPromise->then(
+        [this, self = this->shared_from_this()](common::Data data) mutable {
+          this->receiveFrameHeaderHandler(common::DataConstBuffer(data));
+        },
+        [this, self = this->shared_from_this()](const error::Error& e) mutable {
+          message_.reset();
+          promise_->reject(e);
+          promise_.reset();
+        });
+
+    transport_->receive(FrameHeader::getSizeOf(), std::move(transportPromise));
+  }
 }
+
+}  // namespace messenger
+}  // namespace aasdk

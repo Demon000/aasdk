@@ -18,20 +18,16 @@
 
 #include <aasdk/Channel/AV/SystemAudioServiceChannel.hpp>
 
+namespace aasdk {
+namespace channel {
+namespace av {
 
-namespace aasdk
-{
-namespace channel
-{
-namespace av
-{
+SystemAudioServiceChannel::SystemAudioServiceChannel(
+    boost::asio::io_service::strand& strand,
+    messenger::IMessenger::Pointer messenger)
+    : AudioServiceChannel(strand, std::move(messenger),
+                          messenger::ChannelId::SYSTEM_AUDIO) {}
 
-SystemAudioServiceChannel::SystemAudioServiceChannel(boost::asio::io_service::strand& strand, messenger::IMessenger::Pointer messenger)
-    : AudioServiceChannel(strand, std::move(messenger), messenger::ChannelId::SYSTEM_AUDIO)
-{
-
-}
-
-}
-}
-}
+}  // namespace av
+}  // namespace channel
+}  // namespace aasdk

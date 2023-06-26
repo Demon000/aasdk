@@ -20,56 +20,63 @@
 
 #include <aasdk/USB/IUSBWrapper.hpp>
 
+namespace aasdk {
+namespace usb {
 
-namespace aasdk
-{
-namespace usb
-{
+class USBWrapper : public IUSBWrapper {
+ public:
+  USBWrapper(libusb_context* usbContext);
 
-class USBWrapper: public IUSBWrapper
-{
-public:
-    USBWrapper(libusb_context* usbContext);
+  int releaseInterface(const DeviceHandle& dev_handle,
+                       int interface_number) override;
+  libusb_device* getDevice(const DeviceHandle& dev_handle) override;
+  int claimInterface(const DeviceHandle& dev_handle,
+                     int interface_number) override;
+  DeviceHandle openDeviceWithVidPid(uint16_t vendor_id,
+                                    uint16_t product_id) override;
+  int getConfigDescriptor(
+      libusb_device* dev, uint8_t config_index,
+      ConfigDescriptorHandle& config_descriptor_handle) override;
 
-    int releaseInterface(const DeviceHandle& dev_handle, int interface_number) override;
-    libusb_device* getDevice(const DeviceHandle& dev_handle) override;
-    int claimInterface(const DeviceHandle& dev_handle, int interface_number) override;
-    DeviceHandle openDeviceWithVidPid(uint16_t vendor_id, uint16_t product_id) override;
-    int getConfigDescriptor(libusb_device *dev, uint8_t config_index, ConfigDescriptorHandle& config_descriptor_handle) override;
+  void fillBulkTransfer(libusb_transfer* transfer,
+                        const DeviceHandle& dev_handle, unsigned char endpoint,
+                        unsigned char* buffer, int length,
+                        libusb_transfer_cb_fn callback, void* user_data,
+                        unsigned int timeout) override;
 
-    void fillBulkTransfer(libusb_transfer *transfer,
-        const DeviceHandle& dev_handle, unsigned char endpoint,
-        unsigned char *buffer, int length, libusb_transfer_cb_fn callback,
-        void *user_data, unsigned int timeout) override;
+  void fillInterruptTransfer(libusb_transfer* transfer,
+                             const DeviceHandle& dev_handle,
+                             unsigned char endpoint, unsigned char* buffer,
+                             int length, libusb_transfer_cb_fn callback,
+                             void* user_data, unsigned int timeout) override;
 
-    void fillInterruptTransfer(libusb_transfer *transfer,
-        const DeviceHandle& dev_handle, unsigned char endpoint,
-        unsigned char *buffer, int length, libusb_transfer_cb_fn callback,
-        void *user_data, unsigned int timeout) override;
+  void fillControlTransfer(libusb_transfer* transfer,
+                           const DeviceHandle& dev_handle,
+                           unsigned char* buffer,
+                           libusb_transfer_cb_fn callback, void* user_data,
+                           unsigned int timeout) override;
 
-    void fillControlTransfer(
-        libusb_transfer *transfer, const DeviceHandle& dev_handle,
-        unsigned char *buffer, libusb_transfer_cb_fn callback, void *user_data,
-        unsigned int timeout) override;
+  int submitTransfer(libusb_transfer* transfer) override;
+  int cancelTransfer(libusb_transfer* transfer) override;
+  void freeTransfer(libusb_transfer* transfer) override;
 
-    int submitTransfer(libusb_transfer *transfer) override;
-    int cancelTransfer(libusb_transfer *transfer) override;
-    void freeTransfer(libusb_transfer *transfer) override;
+  ssize_t getDeviceList(DeviceListHandle& handle) override;
+  int open(libusb_device* dev, DeviceHandle& dev_handle) override;
+  void fillControlSetup(unsigned char* buffer, uint8_t bmRequestType,
+                        uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
+                        uint16_t wLength) override;
+  int getDeviceDescriptor(libusb_device* dev,
+                          libusb_device_descriptor& desc) override;
+  void handleEvents() override;
+  HotplugCallbackHandle hotplugRegisterCallback(
+      libusb_hotplug_event events, libusb_hotplug_flag flags, int vendor_id,
+      int product_id, int dev_class, libusb_hotplug_callback_fn cb_fn,
+      void* user_data) override;
+  libusb_transfer* allocTransfer(int iso_packets) override;
 
-    ssize_t getDeviceList(DeviceListHandle& handle) override;
-    int open(libusb_device *dev, DeviceHandle& dev_handle) override;
-    void fillControlSetup(unsigned char *buffer,
-        uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
-        uint16_t wLength) override;
-    int getDeviceDescriptor(libusb_device *dev, libusb_device_descriptor &desc) override;
-    void handleEvents() override;
-    HotplugCallbackHandle hotplugRegisterCallback(libusb_hotplug_event events, libusb_hotplug_flag flags, int vendor_id, int product_id, int dev_class,
-                                                  libusb_hotplug_callback_fn cb_fn, void *user_data) override;
-    libusb_transfer* allocTransfer(int iso_packets) override;
-
-private:
-    libusb_context* usbContext_;
+ private:
+  libusb_context* usbContext_;
 };
 
-}
-}
+}  // namespace usb
+}  // namespace aasdk
