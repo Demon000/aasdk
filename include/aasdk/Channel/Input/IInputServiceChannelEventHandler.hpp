@@ -20,6 +20,7 @@
 
 #include <aasdk_proto/BindingRequestMessage.pb.h>
 #include <aasdk_proto/ChannelOpenRequestMessage.pb.h>
+#include <aasdk/Error/Error.hpp>
 #include <stdint.h>
 
 namespace aasdk {

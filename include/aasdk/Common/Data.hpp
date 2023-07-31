@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <cstddef>
 #include <string>
+#include <cstring>
 #include <vector>
 
 namespace aasdk {
@@ -62,14 +63,14 @@ template <typename DataType>
 void copy(DataType& data, const DataBuffer& buffer) {
   size_t offset = data.size();
   data.resize(data.size() + buffer.size);
-  memcpy(&data[offset], buffer.data, buffer.size);
+  std::memcpy(&data[offset], buffer.data, buffer.size);
 }
 
 template <typename DataType>
 void copy(DataType& data, const DataConstBuffer& buffer) {
   size_t offset = data.size();
   data.resize(data.size() + buffer.size);
-  memcpy(&data[offset], buffer.cdata, buffer.size);
+  std::memcpy(&data[offset], buffer.cdata, buffer.size);
 }
 
 common::Data createData(const DataConstBuffer& buffer);

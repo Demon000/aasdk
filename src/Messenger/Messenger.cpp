@@ -36,7 +36,7 @@ void Messenger::enqueueReceive(ChannelId channelId,
   receiveStrand_.dispatch([this, self = this->shared_from_this(), channelId,
                            promise = std::move(promise)]() mutable {
     if (!channelReceiveMessageQueue_.empty(channelId)) {
-      promise->resolve(std::move(channelReceiveMessageQueue_.pop(channelId)));
+      promise->resolve(channelReceiveMessageQueue_.pop(channelId));
     } else {
       channelReceivePromiseQueue_.push(channelId, std::move(promise));
 
