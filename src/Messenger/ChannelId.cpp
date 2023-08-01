@@ -45,6 +45,8 @@ std::string channelIdToString(ChannelId channelId) {
       return "NAVIGATION";
     case ChannelId::NONE:
       return "NONE";
+    case ChannelId::MEDIA_STATUS:
+      return "MEDIA_STATUS";
     default:
       return "(null)";
   }

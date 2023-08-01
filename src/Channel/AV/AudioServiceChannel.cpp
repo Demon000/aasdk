@@ -50,6 +50,7 @@ messenger::ChannelId AudioServiceChannel::getId() const {
 void AudioServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -64,6 +65,7 @@ void AudioServiceChannel::sendChannelOpenResponse(
 void AudioServiceChannel::sendAVChannelSetupResponse(
     const proto::messages::AVChannelSetupResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -78,6 +80,7 @@ void AudioServiceChannel::sendAVChannelSetupResponse(
 void AudioServiceChannel::sendAVMediaAckIndication(
     const proto::messages::AVMediaAckIndication& indication,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(indication);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -129,6 +132,7 @@ void AudioServiceChannel::handleAVChannelSetupRequest(
     IAudioServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelSetupRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onAVChannelSetupRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -140,6 +144,7 @@ void AudioServiceChannel::handleStartIndication(
     IAudioServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelStartIndication indication;
   if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(indication);
     eventHandler->onAVChannelStartIndication(indication);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -151,6 +156,7 @@ void AudioServiceChannel::handleStopIndication(
     IAudioServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelStopIndication indication;
   if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(indication);
     eventHandler->onAVChannelStopIndication(indication);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -162,6 +168,7 @@ void AudioServiceChannel::handleChannelOpenRequest(
     IAudioServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

@@ -35,8 +35,6 @@ BluetoothServiceChannel::BluetoothServiceChannel(
 
 void BluetoothServiceChannel::receive(
     IBluetoothServiceChannelEventHandler::Pointer eventHandler) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] receive ";
-
   auto receivePromise = messenger::ReceivePromise::defer(strand_);
   receivePromise->then(
       std::bind(&BluetoothServiceChannel::messageHandler,
@@ -54,8 +52,7 @@ messenger::ChannelId BluetoothServiceChannel::getId() const {
 void BluetoothServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] channel open response ";
-
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -70,8 +67,7 @@ void BluetoothServiceChannel::sendChannelOpenResponse(
 void BluetoothServiceChannel::sendBluetoothPairingResponse(
     const proto::messages::BluetoothPairingResponse& response,
     SendPromise::Pointer promise) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] pairing response ";
-
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -87,8 +83,6 @@ void BluetoothServiceChannel::sendBluetoothPairingResponse(
 void BluetoothServiceChannel::messageHandler(
     messenger::Message::Pointer message,
     IBluetoothServiceChannelEventHandler::Pointer eventHandler) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] message handler ";
-
   messenger::MessageId messageId(message->getPayload());
   common::DataConstBuffer payload(message->getPayload(), messageId.getSizeOf());
 
@@ -110,10 +104,9 @@ void BluetoothServiceChannel::messageHandler(
 void BluetoothServiceChannel::handleChannelOpenRequest(
     const common::DataConstBuffer& payload,
     IBluetoothServiceChannelEventHandler::Pointer eventHandler) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] channel open request ";
-
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -123,10 +116,9 @@ void BluetoothServiceChannel::handleChannelOpenRequest(
 void BluetoothServiceChannel::handleBluetoothPairingRequest(
     const common::DataConstBuffer& payload,
     IBluetoothServiceChannelEventHandler::Pointer eventHandler) {
-  AASDK_LOG(info) << "[BluetoothServiceChannel] pairing request ";
-
   proto::messages::BluetoothPairingRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onBluetoothPairingRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

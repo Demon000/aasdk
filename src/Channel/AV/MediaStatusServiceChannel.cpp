@@ -55,7 +55,7 @@ messenger::ChannelId MediaStatusServiceChannel::getId() const {
 void MediaStatusServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
-  AASDK_LOG(info) << "[MediaStatusServiceChannel] channel open response ";
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -99,12 +99,10 @@ void MediaStatusServiceChannel::handleMetadataUpdate(
     IMediaStatusServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::MediaInfoChannelMetadataData metadata;
   if (metadata.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(metadata);
     eventHandler->onMetadataUpdate(metadata);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
-    AASDK_LOG(error)
-        << "[MediaStatusServiceChannel] encountered error with message: "
-        << dump(payload);
   }
 }
 
@@ -113,6 +111,7 @@ void MediaStatusServiceChannel::handlePlaybackUpdate(
     IMediaStatusServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::MediaInfoChannelPlaybackData playback;
   if (playback.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(playback);
     eventHandler->onPlaybackUpdate(playback);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -125,10 +124,9 @@ void MediaStatusServiceChannel::handlePlaybackUpdate(
 void MediaStatusServiceChannel::handleChannelOpenRequest(
     const common::DataConstBuffer& payload,
     IMediaStatusServiceChannelEventHandler::Pointer eventHandler) {
-  AASDK_LOG(info) << "[MediaStatusServiceChannel] channel open request ";
-
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

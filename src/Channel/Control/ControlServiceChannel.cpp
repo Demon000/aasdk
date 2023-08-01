@@ -67,6 +67,7 @@ void ControlServiceChannel::sendHandshake(common::Data handshakeBuffer,
 void ControlServiceChannel::sendAuthComplete(
     const proto::messages::AuthCompleteIndication& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::PLAIN,
       messenger::MessageType::SPECIFIC));
@@ -81,6 +82,7 @@ void ControlServiceChannel::sendAuthComplete(
 void ControlServiceChannel::sendServiceDiscoveryResponse(
     const proto::messages::ServiceDiscoveryResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -96,6 +98,7 @@ void ControlServiceChannel::sendServiceDiscoveryResponse(
 void ControlServiceChannel::sendAudioFocusResponse(
     const proto::messages::AudioFocusResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -110,6 +113,7 @@ void ControlServiceChannel::sendAudioFocusResponse(
 void ControlServiceChannel::sendShutdownRequest(
     const proto::messages::ShutdownRequest& request,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(request);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -124,6 +128,7 @@ void ControlServiceChannel::sendShutdownRequest(
 void ControlServiceChannel::sendShutdownResponse(
     const proto::messages::ShutdownResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -138,6 +143,7 @@ void ControlServiceChannel::sendShutdownResponse(
 void ControlServiceChannel::sendNavigationFocusResponse(
     const proto::messages::NavigationFocusResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -153,6 +159,7 @@ void ControlServiceChannel::sendNavigationFocusResponse(
 void ControlServiceChannel::sendPingResponse(
     const proto::messages::PingResponse& request,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(request);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::PLAIN,
       messenger::MessageType::SPECIFIC));
@@ -166,6 +173,7 @@ void ControlServiceChannel::sendPingResponse(
 
 void ControlServiceChannel::sendPingRequest(
     const proto::messages::PingRequest& request, SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(request);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::PLAIN,
       messenger::MessageType::SPECIFIC));
@@ -257,6 +265,7 @@ void ControlServiceChannel::handleServiceDiscoveryRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ServiceDiscoveryRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onServiceDiscoveryRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -268,6 +277,7 @@ void ControlServiceChannel::handleAudioFocusRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AudioFocusRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onAudioFocusRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -279,6 +289,7 @@ void ControlServiceChannel::handleVoiceSessionRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::VoiceSessionRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onVoiceSessionRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -290,6 +301,7 @@ void ControlServiceChannel::handleShutdownRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ShutdownRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onShutdownRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -301,6 +313,7 @@ void ControlServiceChannel::handleShutdownResponse(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ShutdownResponse response;
   if (response.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(response);
     eventHandler->onShutdownResponse(response);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -312,6 +325,7 @@ void ControlServiceChannel::handleNavigationFocusRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::NavigationFocusRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onNavigationFocusRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -322,6 +336,7 @@ void ControlServiceChannel::handlePingRequest(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::PingRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onPingRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -332,6 +347,7 @@ void ControlServiceChannel::handlePingResponse(
     IControlServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::PingResponse response;
   if (response.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(response);
     eventHandler->onPingResponse(response);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

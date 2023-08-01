@@ -52,6 +52,7 @@ messenger::ChannelId VideoServiceChannel::getId() const {
 void VideoServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -66,6 +67,7 @@ void VideoServiceChannel::sendChannelOpenResponse(
 void VideoServiceChannel::sendAVChannelSetupResponse(
     const proto::messages::AVChannelSetupResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -80,6 +82,7 @@ void VideoServiceChannel::sendAVChannelSetupResponse(
 void VideoServiceChannel::sendVideoFocusIndication(
     const proto::messages::VideoFocusIndication& indication,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(indication);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -94,6 +97,7 @@ void VideoServiceChannel::sendVideoFocusIndication(
 void VideoServiceChannel::sendAVMediaAckIndication(
     const proto::messages::AVMediaAckIndication& indication,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(indication);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -148,6 +152,7 @@ void VideoServiceChannel::handleAVChannelSetupRequest(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelSetupRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onAVChannelSetupRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -159,6 +164,7 @@ void VideoServiceChannel::handleStartIndication(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelStartIndication indication;
   if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(indication);
     eventHandler->onAVChannelStartIndication(indication);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -170,6 +176,7 @@ void VideoServiceChannel::handleStopIndication(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelStopIndication indication;
   if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(indication);
     eventHandler->onAVChannelStopIndication(indication);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -181,6 +188,7 @@ void VideoServiceChannel::handleChannelOpenRequest(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -192,6 +200,7 @@ void VideoServiceChannel::handleVideoFocusRequest(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::VideoFocusRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onVideoFocusRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -203,10 +212,12 @@ void VideoServiceChannel::handleAVMediaWithTimestampIndication(
     IVideoServiceChannelEventHandler::Pointer eventHandler) {
   if (payload.size >= sizeof(messenger::Timestamp::ValueType)) {
     messenger::Timestamp timestamp(payload);
+    auto buffer = common::DataConstBuffer(payload.cdata, payload.size,
+                                sizeof(messenger::Timestamp::ValueType));
+    PRINT_RECEIVE(buffer.size);
+    PRINT_RECEIVE(dump(common::DataConstBuffer(payload.cdata, 32)));
     eventHandler->onAVMediaWithTimestampIndication(
-        timestamp.getValue(),
-        common::DataConstBuffer(payload.cdata, payload.size,
-                                sizeof(messenger::Timestamp::ValueType)));
+        timestamp.getValue(), buffer);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
   }

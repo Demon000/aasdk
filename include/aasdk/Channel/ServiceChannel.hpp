@@ -25,6 +25,15 @@
 namespace aasdk {
 namespace channel {
 
+#define PRINT_RECEIVE(str) \
+  AASDK_LOG(error) << channelIdToString(this->channelId_) << " Receive " << str;
+
+#define PRINT_SEND_PROTO(response) \
+  AASDK_LOG(error) << channelIdToString(this->channelId_) << " Send " << response.GetTypeName() << " " << response.DebugString()
+
+#define PRINT_RECEIVE_PROTO(response) \
+  AASDK_LOG(error) << channelIdToString(this->channelId_) << " Receive " << response.GetTypeName() << " " << response.DebugString()
+
 class ServiceChannel {
  protected:
   ServiceChannel(boost::asio::io_service::strand& strand,

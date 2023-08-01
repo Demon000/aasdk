@@ -52,6 +52,7 @@ messenger::ChannelId InputServiceChannel::getId() const {
 void InputServiceChannel::sendInputEventIndication(
     const proto::messages::InputEventIndication& indication,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(indication);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -67,6 +68,7 @@ void InputServiceChannel::sendInputEventIndication(
 void InputServiceChannel::sendBindingResponse(
     const proto::messages::BindingResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -81,6 +83,7 @@ void InputServiceChannel::sendBindingResponse(
 void InputServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -118,6 +121,7 @@ void InputServiceChannel::handleBindingRequest(
     IInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::BindingRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onBindingRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -129,6 +133,7 @@ void InputServiceChannel::handleChannelOpenRequest(
     IInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

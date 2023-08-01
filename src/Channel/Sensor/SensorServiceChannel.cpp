@@ -86,6 +86,7 @@ void SensorServiceChannel::messageHandler(
 void SensorServiceChannel::sendSensorEventIndication(
     const proto::messages::SensorEventIndication& indication,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(indication);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -101,6 +102,7 @@ void SensorServiceChannel::sendSensorEventIndication(
 void SensorServiceChannel::sendSensorStartResponse(
     const proto::messages::SensorStartResponseMessage& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -118,6 +120,7 @@ void SensorServiceChannel::handleSensorStartRequest(
     ISensorServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::SensorStartRequestMessage request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onSensorStartRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -129,6 +132,7 @@ void SensorServiceChannel::handleChannelOpenRequest(
     ISensorServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));

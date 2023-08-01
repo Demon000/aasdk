@@ -48,6 +48,7 @@ void AVInputServiceChannel::receive(
 void AVInputServiceChannel::sendChannelOpenResponse(
     const proto::messages::ChannelOpenResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::CONTROL));
@@ -62,6 +63,7 @@ void AVInputServiceChannel::sendChannelOpenResponse(
 void AVInputServiceChannel::sendAVChannelSetupResponse(
     const proto::messages::AVChannelSetupResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -107,6 +109,7 @@ void AVInputServiceChannel::messageHandler(
 void AVInputServiceChannel::sendAVInputOpenResponse(
     const proto::messages::AVInputOpenResponse& response,
     SendPromise::Pointer promise) {
+  PRINT_SEND_PROTO(response);
   auto message(std::make_shared<messenger::Message>(
       channelId_, messenger::EncryptionType::ENCRYPTED,
       messenger::MessageType::SPECIFIC));
@@ -141,6 +144,7 @@ void AVInputServiceChannel::handleAVChannelSetupRequest(
     IAVInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVChannelSetupRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onAVChannelSetupRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -152,6 +156,7 @@ void AVInputServiceChannel::handleAVInputOpenRequest(
     IAVInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVInputOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onAVInputOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -163,6 +168,7 @@ void AVInputServiceChannel::handleAVMediaAckIndication(
     IAVInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::AVMediaAckIndication indication;
   if (indication.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(indication);
     eventHandler->onAVMediaAckIndication(indication);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
@@ -174,6 +180,7 @@ void AVInputServiceChannel::handleChannelOpenRequest(
     IAVInputServiceChannelEventHandler::Pointer eventHandler) {
   proto::messages::ChannelOpenRequest request;
   if (request.ParseFromArray(payload.cdata, payload.size)) {
+    PRINT_RECEIVE_PROTO(request);
     eventHandler->onChannelOpenRequest(request);
   } else {
     eventHandler->onChannelError(error::Error(error::ErrorCode::PARSE_PAYLOAD));
